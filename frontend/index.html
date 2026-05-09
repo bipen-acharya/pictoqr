@@ -43,26 +43,23 @@
       line-height: 1.6;
     }
 
-    /* Background decoration */
+    /* Subtle noise texture overlay */
     body::before {
       content: '';
       position: fixed;
-      top: -200px;
-      right: -200px;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%);
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.018'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 0;
     }
     body::after {
       content: '';
       position: fixed;
-      bottom: -200px;
-      left: -100px;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%);
+      top: -200px;
+      right: -200px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(79,70,229,0.07) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -72,11 +69,12 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--border);
       padding: 0 24px;
+      box-shadow: 0 1px 0 rgba(79,70,229,0.05);
     }
     .nav-inner {
       max-width: 960px;
@@ -96,13 +94,14 @@
       width: 34px;
       height: 34px;
       border-radius: 9px;
-      background: var(--indigo);
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.2s ease;
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 2px 8px rgba(79,70,229,0.3);
     }
-    .logo:hover .logo-icon { transform: scale(1.08) rotate(-3deg); }
+    .logo:hover .logo-icon { transform: scale(1.1) rotate(-4deg); }
     .logo-icon svg { width: 20px; height: 20px; }
     .logo-name {
       font-family: 'Outfit', sans-serif;
@@ -116,8 +115,8 @@
       font-size: 12px;
       font-weight: 500;
       color: var(--success);
-      background: rgba(16,185,129,0.1);
-      border: 1px solid rgba(16,185,129,0.2);
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.18);
       padding: 4px 10px;
       border-radius: 100px;
       display: flex;
@@ -131,11 +130,11 @@
       border-radius: 50%;
       background: var(--success);
       display: inline-block;
-      animation: pulse 2s infinite;
+      animation: navPulse 2s infinite;
     }
-    @keyframes pulse {
+    @keyframes navPulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
+      50% { opacity: 0.4; transform: scale(0.75); }
     }
 
     /* MAIN LAYOUT */
@@ -151,10 +150,10 @@
     .hero {
       text-align: center;
       margin-bottom: 40px;
-      animation: fadeUp 0.6s ease both;
+      animation: fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) both;
     }
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .hero h1 {
@@ -168,7 +167,10 @@
     }
     .hero h1 em {
       font-style: normal;
-      color: var(--indigo);
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
     .hero p {
       font-size: 17px;
@@ -184,7 +186,7 @@
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       overflow: hidden;
-      animation: fadeUp 0.6s 0.1s ease both;
+      animation: fadeUp 0.55s 0.08s cubic-bezier(0.16,1,0.3,1) both;
     }
 
     .card-body { padding: 28px; }
@@ -197,12 +199,23 @@
       padding: 40px 24px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
       position: relative;
     }
-    .drop-zone:hover, .drop-zone.drag-over {
+    .drop-zone:hover {
       border-color: var(--indigo);
       background: var(--indigo-light);
+    }
+    .drop-zone.drag-over {
+      border-color: var(--indigo);
+      background: var(--indigo-light);
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.12), 0 0 24px rgba(79,70,229,0.15);
+      transform: scale(1.01);
+      animation: dropGlow 1.2s ease-in-out infinite;
+    }
+    @keyframes dropGlow {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(79,70,229,0.12), 0 0 24px rgba(79,70,229,0.15); }
+      50% { box-shadow: 0 0 0 6px rgba(79,70,229,0.2), 0 0 40px rgba(79,70,229,0.25); }
     }
     .drop-zone input { display: none; }
     .drop-icon {
@@ -215,13 +228,13 @@
       align-items: center;
       justify-content: center;
       margin: 0 auto 16px;
-      transition: all 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    .drop-zone:hover .drop-icon {
+    .drop-zone:hover .drop-icon, .drop-zone.drag-over .drop-icon {
       border-color: var(--indigo-mid);
-      box-shadow: 0 4px 16px rgba(79,70,229,0.12);
-      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(79,70,229,0.18);
+      transform: translateY(-4px) scale(1.05);
     }
     .drop-icon svg { width: 24px; height: 24px; color: var(--indigo); }
     .drop-zone h3 {
@@ -246,12 +259,13 @@
       padding: 8px 20px;
       border-radius: 100px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
     }
     .btn-choose:hover {
       background: var(--indigo);
       border-color: var(--indigo);
       color: white;
+      transform: scale(1.04);
     }
     .drop-hint {
       margin-top: 12px;
@@ -269,7 +283,7 @@
       border-radius: var(--radius-sm);
       border: 1px solid var(--indigo-mid);
       margin-bottom: 20px;
-      animation: fadeUp 0.3s ease;
+      animation: fadeUp 0.3s cubic-bezier(0.16,1,0.3,1);
     }
     .file-selected.show { display: flex; }
     .file-thumb {
@@ -309,9 +323,7 @@
     .btn-remove:hover { color: var(--danger); background: rgba(239,68,68,0.08); }
 
     /* CUSTOMIZE SECTION */
-    .customize-section {
-      margin-top: 20px;
-    }
+    .customize-section { margin-top: 20px; }
     .customize-toggle {
       width: 100%;
       display: flex;
@@ -338,10 +350,8 @@
       transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
       opacity: 0;
     }
-    .customize-body.open { max-height: 300px; opacity: 1; }
-    .customize-inner {
-      padding: 20px 4px 4px;
-    }
+    .customize-body.open { max-height: 320px; opacity: 1; }
+    .customize-inner { padding: 20px 4px 4px; }
 
     .option-label {
       font-size: 11px;
@@ -369,40 +379,33 @@
       background: var(--surface);
       color: var(--text-2);
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
     }
-    .expiry-btn:hover { border-color: var(--indigo-mid); color: var(--indigo); }
+    .expiry-btn:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.03); }
     .expiry-btn.active {
       background: var(--indigo);
       border-color: var(--indigo);
       color: white;
-      box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+      box-shadow: 0 3px 10px rgba(79,70,229,0.3);
+      transform: scale(1.04);
     }
 
     /* COLOR SWATCHES */
-    .color-group {
-      display: flex;
-      gap: 10px;
-    }
+    .color-group { display: flex; gap: 10px; }
     .color-swatch {
       width: 30px;
       height: 30px;
       border-radius: 50%;
       border: 2.5px solid transparent;
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
       position: relative;
     }
-    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch:hover { transform: scale(1.2); }
     .color-swatch.active {
       border-color: var(--text-1);
       box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px currentColor;
-    }
-    .color-swatch::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
+      transform: scale(1.15);
     }
 
     /* DIVIDER */
@@ -415,12 +418,12 @@
       font-size: 16px;
       font-weight: 600;
       color: white;
-      background: var(--indigo);
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
       border: none;
       padding: 15px 24px;
       border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -428,26 +431,27 @@
       letter-spacing: -0.2px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.25);
     }
     .btn-generate::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
       opacity: 0;
       transition: opacity 0.2s;
     }
     .btn-generate:hover:not(:disabled) {
-      background: var(--indigo-dark);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(79,70,229,0.35);
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 8px 24px rgba(79,70,229,0.4);
     }
     .btn-generate:hover:not(:disabled)::before { opacity: 1; }
-    .btn-generate:active:not(:disabled) { transform: translateY(0); }
+    .btn-generate:active:not(:disabled) { transform: translateY(0) scale(0.99); }
     .btn-generate:disabled {
       opacity: 0.45;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
     .btn-generate svg { width: 18px; height: 18px; }
 
@@ -455,19 +459,39 @@
     .spinner {
       width: 18px;
       height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
+      border: 2.5px solid rgba(255,255,255,0.3);
       border-top-color: white;
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      animation: spin 0.65s linear infinite;
+      flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* SKELETON LOADING */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-3) 25%, var(--border) 50%, var(--surface-3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
 
     /* RESULT CARD */
     .result-card {
       display: none;
-      animation: fadeUp 0.5s ease both;
+      transform-origin: top center;
     }
-    .result-card.show { display: block; }
+    .result-card.show {
+      display: block;
+      animation: resultReveal 0.55s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes resultReveal {
+      from { opacity: 0; transform: scale(0.95) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
 
     .result-header {
       padding: 20px 28px;
@@ -519,6 +543,7 @@
       border-radius: 50%;
       background: var(--success);
       display: inline-block;
+      animation: navPulse 2s infinite;
     }
 
     .result-body {
@@ -532,11 +557,16 @@
     /* QR CODE */
     .qr-wrapper {
       background: white;
-      border-radius: 16px;
-      padding: 16px;
+      border-radius: 18px;
+      padding: 18px;
       border: 1px solid var(--border);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
       display: inline-block;
+      animation: qrAppear 0.55s 0.15s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes qrAppear {
+      from { opacity: 0; transform: scale(0.82); }
+      to { opacity: 1; transform: scale(1); }
     }
     #qrcode { display: block; }
     #qrcode canvas, #qrcode img { border-radius: 8px; display: block; }
@@ -556,6 +586,11 @@
       border-radius: 12px;
       padding: 14px 12px;
       text-align: center;
+      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(79,70,229,0.1);
     }
     .stat-value {
       font-family: 'Outfit', sans-serif;
@@ -590,7 +625,9 @@
       padding: 10px 14px;
       outline: none;
       min-width: 0;
+      transition: border-color 0.2s;
     }
+    .link-input:focus { border-color: var(--indigo-mid); }
     .btn-copy {
       font-family: 'DM Sans', sans-serif;
       font-size: 13px;
@@ -601,13 +638,13 @@
       border-radius: 10px;
       padding: 10px 16px;
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
       display: flex;
       align-items: center;
       gap: 6px;
       white-space: nowrap;
     }
-    .btn-copy:hover { border-color: var(--indigo-mid); color: var(--indigo); }
+    .btn-copy:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.03); }
     .btn-copy.copied {
       color: var(--success);
       border-color: rgba(16,185,129,0.3);
@@ -633,22 +670,23 @@
       align-items: center;
       justify-content: center;
       gap: 7px;
-      transition: all 0.18s ease;
+      transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
       text-decoration: none;
     }
     .btn-action svg { width: 16px; height: 16px; }
     .btn-primary {
-      background: var(--indigo);
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
       color: white;
       border: none;
+      box-shadow: 0 3px 10px rgba(79,70,229,0.25);
     }
-    .btn-primary:hover { background: var(--indigo-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79,70,229,0.3); }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 18px rgba(79,70,229,0.35); }
     .btn-secondary {
       background: var(--surface);
       color: var(--text-2);
       border: 1px solid var(--border-2);
     }
-    .btn-secondary:hover { border-color: var(--indigo-mid); color: var(--indigo); }
+    .btn-secondary:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: translateY(-1px); }
 
     /* EXPIRY WARNING */
     .expiry-warning {
@@ -664,28 +702,6 @@
     }
     .expiry-warning svg { width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0; }
 
-    /* RESET */
-    .btn-reset {
-      width: 100%;
-      margin-top: 20px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-3);
-      background: none;
-      border: 1px solid var(--border);
-      padding: 11px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .btn-reset:hover { color: var(--text-1); border-color: var(--border-2); }
-    .btn-reset svg { width: 15px; height: 15px; }
-
     /* UPLOAD ANOTHER */
     .btn-upload-another {
       width: 100%;
@@ -698,7 +714,7 @@
       padding: 13px;
       border-radius: 10px;
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -709,8 +725,34 @@
       border-color: var(--indigo);
       color: var(--indigo);
       background: var(--indigo-light);
+      transform: scale(1.01);
     }
     .btn-upload-another svg { width: 16px; height: 16px; }
+
+    /* CONFETTI */
+    .confetti-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      top: -12px;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      85% { opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
 
     /* FOOTER */
     footer {
@@ -735,6 +777,8 @@
   </style>
 </head>
 <body>
+
+  <div class="confetti-container" id="confetti-container"></div>
 
   <nav>
     <div class="nav-inner">
@@ -810,9 +854,11 @@
             <div class="customize-inner">
               <div class="option-label">Link Expiry</div>
               <div class="expiry-group">
-                <button class="expiry-btn" data-hours="1">1 hour</button>
-                <button class="expiry-btn active" data-hours="168">7 days</button>
-                <button class="expiry-btn" data-hours="576">24 hours</button>
+                <button class="expiry-btn" data-expiry="1h">1 hour</button>
+                <button class="expiry-btn" data-expiry="7h">7 hours</button>
+                <button class="expiry-btn" data-expiry="24h">24 hours</button>
+                <button class="expiry-btn active" data-expiry="7d">7 days</button>
+                <button class="expiry-btn" data-expiry="15d">15 days</button>
               </div>
               <div class="option-label">QR Color</div>
               <div class="color-group">
@@ -916,11 +962,12 @@
   </footer>
 
   <script>
-    const API = '';
     let selectedFile = null;
     let selectedColor = '#4F46E5';
-    let selectedHours = 168;
-    let trackUrl = '';
+    let selectedExpiry = '7d';
+    let shortUrl = '';
+    let expiresAtTs = null; // unix ms
+    let countdownInterval = null;
 
     // DOM refs
     const dropZone = document.getElementById('drop-zone');
@@ -937,15 +984,21 @@
 
     // Drop zone interactions
     dropZone.addEventListener('click', e => {
-      if (!e.target.closest('.btn-choose') && e.target !== dropZone) return;
-      fileInput.click();
+      if (e.target.closest('.btn-choose') || e.target === dropZone || e.target.closest('.drop-zone')) {
+        fileInput.click();
+      }
     });
     document.querySelector('.btn-choose').addEventListener('click', e => {
       e.stopPropagation();
       fileInput.click();
     });
-    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', e => {
+      if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over');
+    });
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
@@ -990,7 +1043,7 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('.expiry-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        selectedHours = parseInt(btn.dataset.hours);
+        selectedExpiry = btn.dataset.expiry;
       });
     });
 
@@ -1012,23 +1065,85 @@
       btnGenerate.disabled = true;
 
       try {
-        const expiresAt = Date.now() + selectedHours * 3600 * 1000;
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('expiresAt', expiresAt);
+        formData.append('expiry', selectedExpiry);
+        formData.append('qrDark', selectedColor);
+        formData.append('qrLight', '#ffffff');
 
         const res = await fetch('/api/upload', { method: 'POST', body: formData });
         if (!res.ok) throw new Error('Upload failed');
         const data = await res.json();
 
-        trackUrl = data.trackUrl || data.url;
+        shortUrl = data.shortUrl || data.trackUrl;
+        expiresAtTs = data.expiresAt ? new Date(data.expiresAt).getTime() : null;
         showResult(file, data);
       } catch (err) {
         alert('Upload failed. Please try again.');
-        btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
+        resetGenerateBtn();
         btnGenerate.disabled = false;
       }
     });
+
+    function resetGenerateBtn() {
+      btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
+    }
+
+    function formatCountdown(ms) {
+      if (ms <= 0) return 'Expired';
+      const totalSec = Math.floor(ms / 1000);
+      const days = Math.floor(totalSec / 86400);
+      const hrs = Math.floor((totalSec % 86400) / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      if (days >= 1) return `${days}d ${hrs}h`;
+      if (hrs >= 1) return `${hrs}h ${mins}m`;
+      return `${mins}m`;
+    }
+
+    function startCountdown() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      if (!expiresAtTs) {
+        document.getElementById('stat-expiry').textContent = '∞';
+        return;
+      }
+      function tick() {
+        const remaining = expiresAtTs - Date.now();
+        document.getElementById('stat-expiry').textContent = formatCountdown(remaining);
+        if (remaining <= 0) clearInterval(countdownInterval);
+      }
+      tick();
+      countdownInterval = setInterval(tick, 30_000);
+    }
+
+    function animateCountUp(el, target, duration) {
+      const start = performance.now();
+      const from = 0;
+      function step(now) {
+        const t = Math.min((now - start) / duration, 1);
+        el.textContent = Math.round(from + t * target);
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function launchConfetti() {
+      const container = document.getElementById('confetti-container');
+      const colors = ['#4F46E5','#7C3AED','#10B981','#F59E0B','#EC4899','#0EA5E9'];
+      const pieces = 60;
+      for (let i = 0; i < pieces; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.width = (Math.random() * 8 + 6) + 'px';
+        el.style.height = (Math.random() * 6 + 4) + 'px';
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        el.style.animationDuration = (Math.random() * 1.8 + 1.2) + 's';
+        el.style.animationDelay = (Math.random() * 0.6) + 's';
+        container.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }
+    }
 
     function showResult(file, data) {
       // Populate header
@@ -1036,30 +1151,27 @@
       document.getElementById('result-file-meta').textContent = formatBytes(file.size);
 
       // Stats
-      document.getElementById('stat-scans').textContent = data.scanCount ?? 0;
+      animateCountUp(document.getElementById('stat-scans'), data.scanCount ?? 0, 600);
       document.getElementById('stat-size').textContent = formatBytes(file.size);
 
-      const expiryMs = data.expiresAt ? (data.expiresAt - Date.now()) : selectedHours * 3600 * 1000;
-      const hours = Math.round(expiryMs / 3600000);
-      const days = Math.floor(hours / 24);
-      document.getElementById('stat-expiry').textContent = days >= 1 ? `${days}d ${hours % 24}h` : `${hours}h`;
+      // Start countdown
+      startCountdown();
 
-      // Expiry warning
-      if (hours <= 24) {
+      // Expiry warning for ≤ 24h
+      if (expiresAtTs && (expiresAtTs - Date.now()) <= 86_400_000) {
         document.getElementById('expiry-warning').style.display = 'flex';
-        const expDate = new Date(Date.now() + expiryMs);
+        const expDate = new Date(expiresAtTs);
         document.getElementById('expiry-text').textContent =
           `This file expires on ${expDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} — download the QR to keep access`;
       }
 
       // Link
-      const url = trackUrl;
-      document.getElementById('link-input').value = url;
+      document.getElementById('link-input').value = shortUrl;
 
       // QR Code
       document.getElementById('qrcode').innerHTML = '';
       new QRCode(document.getElementById('qrcode'), {
-        text: url,
+        text: shortUrl,
         width: 200,
         height: 200,
         colorDark: selectedColor,
@@ -1071,6 +1183,9 @@
       uploadCard.style.display = 'none';
       resultCard.classList.add('show');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Celebrate!
+      setTimeout(launchConfetti, 150);
     }
 
     // Copy link
@@ -1099,25 +1214,21 @@
 
     // Open file
     document.getElementById('btn-open-file').addEventListener('click', () => {
-      if (trackUrl) window.open(trackUrl, '_blank');
+      if (shortUrl) window.open(shortUrl, '_blank');
     });
 
     // Upload another
     document.getElementById('btn-upload-another').addEventListener('click', () => {
+      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
       resultCard.classList.remove('show');
       uploadCard.style.display = '';
       clearFile();
       document.getElementById('qrcode').innerHTML = '';
       document.getElementById('expiry-warning').style.display = 'none';
-      trackUrl = '';
-      btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
+      shortUrl = '';
+      expiresAtTs = null;
+      resetGenerateBtn();
     });
-
-    // Handle direct result URL (e.g. /r/... redirect pages)
-    const path = window.location.pathname;
-    if (path.startsWith('/r/')) {
-      // handled by backend redirect, nothing to do
-    }
   </script>
 </body>
 </html>

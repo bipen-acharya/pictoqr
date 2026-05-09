@@ -55,8 +55,10 @@ const r2 = R2_CONFIGURED
     })
   : null;
 
-// ── In-memory scan counter ────────────────────────────────────────────
+// ── In-memory stores ──────────────────────────────────────────────────
 const scanCounts = new Map();
+// slug -> { r2Key, fileUrl, expiresAt (ISO string | null) }
+const slugMap = new Map();
 
 // ── Local temp dir ────────────────────────────────────────────────────
 const rootDir = path.join(__dirname, "..");
@@ -85,9 +87,18 @@ function parseHexColor(value, fallback) {
   return /^#([0-9a-fA-F]{6})$/.test(v) ? v : fallback;
 }
 
+const EXPIRY_MS = {
+  "1h":  3_600_000,
+  "7h":  25_200_000,
+  "24h": 86_400_000,
+  "7d":  604_800_000,
+  "15d": 1_296_000_000,
+};
+
 function calcExpiresAt(expiry) {
-  const ms = { "1h": 3600000, "24h": 86400000, "7d": 604800000, "30d": 2592000000 };
-  return ms[expiry] ? new Date(Date.now() + ms[expiry]).toISOString() : null;
+  return EXPIRY_MS[expiry]
+    ? new Date(Date.now() + EXPIRY_MS[expiry]).toISOString()
+    : null;
 }
 
 // R2 key format: "expires-<unixMs>/<filename>" or "permanent/<filename>"
@@ -111,6 +122,48 @@ async function uploadToR2(localPath, key, contentType) {
   return `${process.env.R2_PUBLIC_URL.replace(/\/$/, "")}/${key}`;
 }
 
+const SLUG_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
+function generateSlug(length = 7) {
+  let slug;
+  do {
+    slug = Array.from(crypto.randomBytes(length))
+      .map((b) => SLUG_CHARS[b % SLUG_CHARS.length])
+      .join("");
+  } while (slugMap.has(slug));
+  return slug;
+}
+
+// ── Expired page HTML ─────────────────────────────────────────────────
+function expiredPage() {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Link Expired · PictoQR</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F8F7FF;color:#1A1830;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;border:1px solid #E5E4F0;border-radius:20px;box-shadow:0 12px 48px rgba(79,70,229,.1);padding:48px 40px;text-align:center;max-width:420px;width:100%}
+.icon{width:72px;height:72px;border-radius:50%;background:#FEF3C7;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:36px}
+h1{font-family:'Outfit',sans-serif;font-size:26px;font-weight:700;margin-bottom:10px;color:#1A1830}
+p{color:#4B4870;font-size:15px;line-height:1.6;margin-bottom:28px}
+a{display:inline-block;background:#4F46E5;color:#fff;text-decoration:none;font-family:'Outfit',sans-serif;font-weight:600;font-size:15px;padding:13px 32px;border-radius:12px;transition:background .2s}
+a:hover{background:#3730A3}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">⏱</div>
+  <h1>This link has expired</h1>
+  <p>The file attached to this QR code is no longer available.<br/>Upload a new file to get a fresh link.</p>
+  <a href="/">Create a new QR code</a>
+</div>
+</body>
+</html>`;
+}
+
 // ── Routes ────────────────────────────────────────────────────────────
 app.get("/", (req, res) =>
   res.sendFile(path.join(rootDir, "frontend", "index.html"))
@@ -128,7 +181,23 @@ app.get("/api/health", (req, res) =>
   })
 );
 
-// QR scan redirect — increments counter then 302s to R2 file URL
+// Short URL redirect — /s/:slug
+app.get("/s/:slug", (req, res) => {
+  const entry = slugMap.get(req.params.slug);
+  if (!entry) {
+    return res.status(404).send(expiredPage());
+  }
+  if (entry.expiresAt && new Date(entry.expiresAt) < new Date()) {
+    slugMap.delete(req.params.slug);
+    return res.status(410).send(expiredPage());
+  }
+  // increment scan count
+  const key = entry.r2Key;
+  scanCounts.set(key, (scanCounts.get(key) || 0) + 1);
+  res.redirect(302, entry.fileUrl);
+});
+
+// Legacy QR scan redirect — /r/<r2key>
 app.get("/r/*", (req, res) => {
   const key = req.params[0];
   scanCounts.set(key, (scanCounts.get(key) || 0) + 1);
@@ -159,14 +228,15 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
       fileUrl = `${BASE_URL}/uploads/${req.file.filename}`;
     }
 
-    const trackUrl = R2_CONFIGURED
-      ? `${BASE_URL}/r/${r2Key}`
-      : fileUrl;
+    const slug = generateSlug();
+    slugMap.set(slug, { r2Key, fileUrl, expiresAt });
+
+    const shortUrl = `${BASE_URL}/s/${slug}`;
 
     const qrDark  = parseHexColor(req.body.qrDark,  "#0f0f13");
     const qrLight = parseHexColor(req.body.qrLight, "#ffffff");
 
-    const qrCode = await QRCode.toDataURL(trackUrl, {
+    const qrCode = await QRCode.toDataURL(shortUrl, {
       width: 1200,
       margin: 2,
       color: { dark: qrDark, light: qrLight },
@@ -175,7 +245,9 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     res.json({
       success: true,
       fileUrl,
-      trackUrl,
+      trackUrl: shortUrl,
+      shortUrl,
+      slug,
       expiresAt,
       qrCode,
       fileName: req.file.originalname,
@@ -227,6 +299,13 @@ app.post("/api/cleanup", async (req, res) => {
 
       ContinuationToken = list.IsTruncated ? list.NextContinuationToken : undefined;
     } while (ContinuationToken);
+
+    // Also purge expired slugs from memory
+    for (const [slug, entry] of slugMap) {
+      if (entry.expiresAt && new Date(entry.expiresAt) < new Date()) {
+        slugMap.delete(slug);
+      }
+    }
 
     res.json({ deleted: deleted.length, keys: deleted });
   } catch (error) {

@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PictoQR — Turn any file into a QR code</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234F46E5'/><rect x='6' y='6' width='8' height='8' rx='1.5' fill='white'/><rect x='18' y='6' width='8' height='8' rx='1.5' fill='white'/><rect x='6' y='18' width='8' height='8' rx='1.5' fill='white'/><rect x='8' y='8' width='4' height='4' rx='0.5' fill='%234F46E5'/><rect x='20' y='8' width='4' height='4' rx='0.5' fill='%234F46E5'/><rect x='8' y='20' width='4' height='4' rx='0.5' fill='%234F46E5'/><rect x='18' y='18' width='4' height='4' rx='1' fill='white'/><rect x='24' y='18' width='2' height='2' rx='0.5' fill='white'/><rect x='24' y='22' width='2' height='4' rx='0.5' fill='white'/><rect x='18' y='24' width='4' height='2' rx='0.5' fill='white'/></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --indigo: #4F46E5;
+      --indigo-dark: #3730A3;
+      --indigo-light: #EEF2FF;
+      --indigo-mid: #C7D2FE;
+      --surface: #FFFFFF;
+      --surface-2: #F8F7FF;
+      --surface-3: #F1F0F9;
+      --border: #E5E4F0;
+      --border-2: #D1D0E8;
+      --text-1: #1A1830;
+      --text-2: #4B4870;
+      --text-3: #8B88B0;
+      --success: #10B981;
+      --danger: #EF4444;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 4px 24px rgba(79,70,229,0.08), 0 1px 4px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 48px rgba(79,70,229,0.14), 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface-2);
+      color: var(--text-1);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Background decoration */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px;
+      left: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--indigo);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease;
+    }
+    .logo:hover .logo-icon { transform: scale(1.08) rotate(-3deg); }
+    .logo-icon svg { width: 20px; height: 20px; }
+    .logo-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text-1);
+      letter-spacing: -0.3px;
+    }
+    .logo-name span { color: var(--indigo); }
+    .nav-badge {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--success);
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.2);
+      padding: 4px 10px;
+      border-radius: 100px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .nav-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* MAIN LAYOUT */
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeUp 0.6s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700;
+      color: var(--text-1);
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--indigo);
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--text-2);
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .card-body { padding: 28px; }
+
+    /* DROP ZONE */
+    .drop-zone {
+      border: 2px dashed var(--border-2);
+      border-radius: var(--radius-sm);
+      background: var(--surface-3);
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--indigo);
+      background: var(--indigo-light);
+    }
+    .drop-zone input { display: none; }
+    .drop-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .drop-zone:hover .drop-icon {
+      border-color: var(--indigo-mid);
+      box-shadow: 0 4px 16px rgba(79,70,229,0.12);
+      transform: translateY(-2px);
+    }
+    .drop-icon svg { width: 24px; height: 24px; color: var(--indigo); }
+    .drop-zone h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 4px;
+    }
+    .drop-zone p {
+      font-size: 13px;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+    .btn-choose {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--indigo);
+      background: var(--indigo-light);
+      border: 1.5px solid var(--indigo-mid);
+      padding: 8px 20px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-choose:hover {
+      background: var(--indigo);
+      border-color: var(--indigo);
+      color: white;
+    }
+    .drop-hint {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    /* FILE SELECTED STATE */
+    .file-selected {
+      display: none;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: var(--indigo-light);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--indigo-mid);
+      margin-bottom: 20px;
+      animation: fadeUp 0.3s ease;
+    }
+    .file-selected.show { display: flex; }
+    .file-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--indigo);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .file-thumb svg { width: 20px; height: 20px; color: white; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-info .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-info .file-size {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .btn-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-3);
+      padding: 4px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      display: flex;
+    }
+    .btn-remove:hover { color: var(--danger); background: rgba(239,68,68,0.08); }
+
+    /* CUSTOMIZE SECTION */
+    .customize-section {
+      margin-top: 20px;
+    }
+    .customize-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-2);
+      transition: all 0.2s ease;
+    }
+    .customize-toggle:hover { border-color: var(--indigo-mid); color: var(--indigo); }
+    .customize-toggle svg { width: 16px; height: 16px; transition: transform 0.3s ease; }
+    .customize-toggle.open svg { transform: rotate(180deg); }
+    .customize-toggle-left { display: flex; align-items: center; gap: 8px; }
+
+    .customize-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+      opacity: 0;
+    }
+    .customize-body.open { max-height: 300px; opacity: 1; }
+    .customize-inner {
+      padding: 20px 4px 4px;
+    }
+
+    .option-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 10px;
+    }
+
+    /* EXPIRY BUTTONS */
+    .expiry-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .expiry-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: 100px;
+      border: 1.5px solid var(--border-2);
+      background: var(--surface);
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .expiry-btn:hover { border-color: var(--indigo-mid); color: var(--indigo); }
+    .expiry-btn.active {
+      background: var(--indigo);
+      border-color: var(--indigo);
+      color: white;
+      box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+    }
+
+    /* COLOR SWATCHES */
+    .color-group {
+      display: flex;
+      gap: 10px;
+    }
+    .color-swatch {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      position: relative;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active {
+      border-color: var(--text-1);
+      box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px currentColor;
+    }
+    .color-swatch::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    /* DIVIDER */
+    .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+    /* GENERATE BTN */
+    .btn-generate {
+      width: 100%;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      background: var(--indigo);
+      border: none;
+      padding: 15px 24px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: -0.2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-generate::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-generate:hover:not(:disabled) {
+      background: var(--indigo-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79,70,229,0.35);
+    }
+    .btn-generate:hover:not(:disabled)::before { opacity: 1; }
+    .btn-generate:active:not(:disabled) { transform: translateY(0); }
+    .btn-generate:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-generate svg { width: 18px; height: 18px; }
+
+    /* LOADING SPINNER */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* RESULT CARD */
+    .result-card {
+      display: none;
+      animation: fadeUp 0.5s ease both;
+    }
+    .result-card.show { display: block; }
+
+    .result-header {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .result-file-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--indigo-light);
+      border: 1px solid var(--indigo-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .result-file-icon svg { width: 22px; height: 22px; color: var(--indigo); }
+    .result-file-info .file-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 2px;
+    }
+    .result-file-info .file-meta {
+      font-size: 13px;
+      color: var(--text-3);
+    }
+    .result-badge {
+      margin-left: auto;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.2);
+      padding: 5px 12px;
+      border-radius: 100px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .result-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+    }
+
+    .result-body {
+      padding: 32px 28px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* QR CODE */
+    .qr-wrapper {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      display: inline-block;
+    }
+    #qrcode { display: block; }
+    #qrcode canvas, #qrcode img { border-radius: 8px; display: block; }
+
+    /* RESULT DETAILS */
+    .result-details { min-width: 0; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .stat-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-1);
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* LINK */
+    .link-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .link-input {
+      flex: 1;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--text-2);
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      outline: none;
+      min-width: 0;
+    }
+    .btn-copy {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-copy:hover { border-color: var(--indigo-mid); color: var(--indigo); }
+    .btn-copy.copied {
+      color: var(--success);
+      border-color: rgba(16,185,129,0.3);
+      background: rgba(16,185,129,0.06);
+    }
+    .btn-copy svg { width: 14px; height: 14px; }
+
+    /* ACTION BUTTONS */
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .btn-action {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 10px;
+      padding: 11px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.18s ease;
+      text-decoration: none;
+    }
+    .btn-action svg { width: 16px; height: 16px; }
+    .btn-primary {
+      background: var(--indigo);
+      color: white;
+      border: none;
+    }
+    .btn-primary:hover { background: var(--indigo-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79,70,229,0.3); }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-2);
+      border: 1px solid var(--border-2);
+    }
+    .btn-secondary:hover { border-color: var(--indigo-mid); color: var(--indigo); }
+
+    /* EXPIRY WARNING */
+    .expiry-warning {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(245,158,11,0.06);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 10px;
+      font-size: 13px;
+      color: #92400e;
+    }
+    .expiry-warning svg { width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0; }
+
+    /* RESET */
+    .btn-reset {
+      width: 100%;
+      margin-top: 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-3);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 11px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-reset:hover { color: var(--text-1); border-color: var(--border-2); }
+    .btn-reset svg { width: 15px; height: 15px; }
+
+    /* UPLOAD ANOTHER */
+    .btn-upload-another {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-2);
+      background: var(--surface-3);
+      border: 1.5px dashed var(--border-2);
+      padding: 13px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 12px;
+    }
+    .btn-upload-another:hover {
+      border-color: var(--indigo);
+      color: var(--indigo);
+      background: var(--indigo-light);
+    }
+    .btn-upload-another svg { width: 16px; height: 16px; }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 13px;
+      color: var(--text-3);
+      position: relative;
+      z-index: 1;
+    }
+    footer a { color: var(--indigo); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      main { padding: 28px 16px 60px; }
+      .result-body { grid-template-columns: 1fr; }
+      .qr-wrapper { display: flex; justify-content: center; }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .action-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="/" class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white"/>
+            <rect x="12" y="2" width="6" height="6" rx="1.5" fill="white"/>
+            <rect x="2" y="12" width="6" height="6" rx="1.5" fill="white"/>
+            <rect x="3.5" y="3.5" width="3" height="3" rx="0.5" fill="#4F46E5"/>
+            <rect x="13.5" y="3.5" width="3" height="3" rx="0.5" fill="#4F46E5"/>
+            <rect x="3.5" y="13.5" width="3" height="3" rx="0.5" fill="#4F46E5"/>
+            <rect x="12" y="12" width="3" height="3" rx="0.8" fill="white"/>
+            <rect x="16" y="12" width="2" height="2" rx="0.5" fill="white"/>
+            <rect x="16" y="15.5" width="2" height="2.5" rx="0.5" fill="white"/>
+            <rect x="12" y="16" width="3" height="2" rx="0.5" fill="white"/>
+          </svg>
+        </div>
+        <span class="logo-name">Picto<span>QR</span></span>
+      </a>
+      <div class="nav-badge">Free · No sign-up</div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="hero">
+      <h1>Turn any file into a<br /><em>scannable QR code</em></h1>
+      <p>Upload a file, get a QR code. Share instantly — no account needed.</p>
+    </div>
+
+    <!-- UPLOAD CARD -->
+    <div class="card" id="upload-card">
+      <div class="card-body">
+
+        <!-- File selected indicator -->
+        <div class="file-selected" id="file-selected">
+          <div class="file-thumb">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="file-info">
+            <div class="file-name" id="selected-file-name"></div>
+            <div class="file-size" id="selected-file-size"></div>
+          </div>
+          <button class="btn-remove" id="btn-remove-file" title="Remove file">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" />
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>Drop your file here</h3>
+          <p>or click to browse from your device</p>
+          <button class="btn-choose" type="button">Choose file</button>
+          <p class="drop-hint">Any file type · Up to 100 MB</p>
+        </div>
+
+        <!-- Customize -->
+        <div class="customize-section">
+          <button class="customize-toggle" id="customize-toggle" type="button">
+            <span class="customize-toggle-left">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93L17.66 6.34M6.34 17.66l-1.41 1.41M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+              Customize
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="customize-body" id="customize-body">
+            <div class="customize-inner">
+              <div class="option-label">Link Expiry</div>
+              <div class="expiry-group">
+                <button class="expiry-btn" data-hours="1">1 hour</button>
+                <button class="expiry-btn active" data-hours="168">7 days</button>
+                <button class="expiry-btn" data-hours="576">24 hours</button>
+              </div>
+              <div class="option-label">QR Color</div>
+              <div class="color-group">
+                <div class="color-swatch active" data-color="#4F46E5" style="background:#4F46E5;" title="Indigo"></div>
+                <div class="color-swatch" data-color="#0F172A" style="background:#0F172A;" title="Black"></div>
+                <div class="color-swatch" data-color="#0EA5E9" style="background:#0EA5E9;" title="Sky"></div>
+                <div class="color-swatch" data-color="#10B981" style="background:#10B981;" title="Emerald"></div>
+                <div class="color-swatch" data-color="#F59E0B" style="background:#F59E0B;" title="Amber"></div>
+                <div class="color-swatch" data-color="#EF4444" style="background:#EF4444;" title="Red"></div>
+                <div class="color-swatch" data-color="#EC4899" style="background:#EC4899;" title="Pink"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Generate button -->
+        <button class="btn-generate" id="btn-generate" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Generate QR Code
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULT CARD -->
+    <div class="card result-card" id="result-card">
+      <div class="result-header">
+        <div class="result-file-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div class="result-file-info">
+          <div class="file-name" id="result-file-name"></div>
+          <div class="file-meta" id="result-file-meta"></div>
+        </div>
+        <div class="result-badge">QR code ready</div>
+      </div>
+
+      <div class="result-body">
+        <!-- QR Code -->
+        <div>
+          <div class="qr-wrapper">
+            <div id="qrcode"></div>
+          </div>
+        </div>
+
+        <!-- Details -->
+        <div class="result-details">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="stat-scans">0</div>
+              <div class="stat-label">QR Scans</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-expiry">—</div>
+              <div class="stat-label">Expires In</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="stat-size">—</div>
+              <div class="stat-label">File Size</div>
+            </div>
+          </div>
+
+          <div class="link-box">
+            <input type="text" class="link-input" id="link-input" readonly />
+            <button class="btn-copy" id="btn-copy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-action btn-primary" id="btn-download">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download QR
+            </button>
+            <button class="btn-action btn-secondary" id="btn-open-file">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              Open File
+            </button>
+          </div>
+
+          <div class="expiry-warning" id="expiry-warning" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="expiry-text">This file expires soon — download the QR to keep access</span>
+          </div>
+
+          <button class="btn-upload-another" id="btn-upload-another">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Upload another file
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    Made with care by PictoQR &nbsp;·&nbsp; Files auto-deleted after expiry &nbsp;·&nbsp;
+    <a href="#">Privacy</a>
+  </footer>
+
+  <script>
+    const API = '';
+    let selectedFile = null;
+    let selectedColor = '#4F46E5';
+    let selectedHours = 168;
+    let trackUrl = '';
+
+    // DOM refs
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileSelected = document.getElementById('file-selected');
+    const selectedFileName = document.getElementById('selected-file-name');
+    const selectedFileSize = document.getElementById('selected-file-size');
+    const btnRemove = document.getElementById('btn-remove-file');
+    const btnGenerate = document.getElementById('btn-generate');
+    const uploadCard = document.getElementById('upload-card');
+    const resultCard = document.getElementById('result-card');
+    const customizeToggle = document.getElementById('customize-toggle');
+    const customizeBody = document.getElementById('customize-body');
+
+    // Drop zone interactions
+    dropZone.addEventListener('click', e => {
+      if (!e.target.closest('.btn-choose') && e.target !== dropZone) return;
+      fileInput.click();
+    });
+    document.querySelector('.btn-choose').addEventListener('click', e => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f) setFile(f);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+
+    function formatBytes(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+      return (b / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function setFile(f) {
+      selectedFile = f;
+      selectedFileName.textContent = f.name;
+      selectedFileSize.textContent = formatBytes(f.size);
+      fileSelected.classList.add('show');
+      dropZone.style.display = 'none';
+      btnGenerate.disabled = false;
+    }
+
+    function clearFile() {
+      selectedFile = null;
+      fileInput.value = '';
+      fileSelected.classList.remove('show');
+      dropZone.style.display = '';
+      btnGenerate.disabled = true;
+    }
+
+    btnRemove.addEventListener('click', clearFile);
+
+    // Customize toggle
+    customizeToggle.addEventListener('click', () => {
+      const isOpen = customizeBody.classList.toggle('open');
+      customizeToggle.classList.toggle('open', isOpen);
+    });
+
+    // Expiry buttons
+    document.querySelectorAll('.expiry-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.expiry-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedHours = parseInt(btn.dataset.hours);
+      });
+    });
+
+    // Color swatches
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        selectedColor = swatch.dataset.color;
+      });
+    });
+
+    // Generate
+    btnGenerate.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      const file = selectedFile;
+
+      btnGenerate.innerHTML = '<div class="spinner"></div> Uploading…';
+      btnGenerate.disabled = true;
+
+      try {
+        const expiresAt = Date.now() + selectedHours * 3600 * 1000;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('expiresAt', expiresAt);
+
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Upload failed');
+        const data = await res.json();
+
+        trackUrl = data.trackUrl || data.url;
+        showResult(file, data);
+      } catch (err) {
+        alert('Upload failed. Please try again.');
+        btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
+        btnGenerate.disabled = false;
+      }
+    });
+
+    function showResult(file, data) {
+      // Populate header
+      document.getElementById('result-file-name').textContent = file.name;
+      document.getElementById('result-file-meta').textContent = formatBytes(file.size);
+
+      // Stats
+      document.getElementById('stat-scans').textContent = data.scanCount ?? 0;
+      document.getElementById('stat-size').textContent = formatBytes(file.size);
+
+      const expiryMs = data.expiresAt ? (data.expiresAt - Date.now()) : selectedHours * 3600 * 1000;
+      const hours = Math.round(expiryMs / 3600000);
+      const days = Math.floor(hours / 24);
+      document.getElementById('stat-expiry').textContent = days >= 1 ? `${days}d ${hours % 24}h` : `${hours}h`;
+
+      // Expiry warning
+      if (hours <= 24) {
+        document.getElementById('expiry-warning').style.display = 'flex';
+        const expDate = new Date(Date.now() + expiryMs);
+        document.getElementById('expiry-text').textContent =
+          `This file expires on ${expDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} — download the QR to keep access`;
+      }
+
+      // Link
+      const url = trackUrl;
+      document.getElementById('link-input').value = url;
+
+      // QR Code
+      document.getElementById('qrcode').innerHTML = '';
+      new QRCode(document.getElementById('qrcode'), {
+        text: url,
+        width: 200,
+        height: 200,
+        colorDark: selectedColor,
+        colorLight: '#FFFFFF',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      // Show result, hide upload
+      uploadCard.style.display = 'none';
+      resultCard.classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Copy link
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      const url = document.getElementById('link-input').value;
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.getElementById('btn-copy');
+        btn.classList.add('copied');
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+        }, 2000);
+      });
+    });
+
+    // Download QR
+    document.getElementById('btn-download').addEventListener('click', () => {
+      const canvas = document.querySelector('#qrcode canvas');
+      if (!canvas) return;
+      const a = document.createElement('a');
+      a.download = 'pictoqr-code.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
+
+    // Open file
+    document.getElementById('btn-open-file').addEventListener('click', () => {
+      if (trackUrl) window.open(trackUrl, '_blank');
+    });
+
+    // Upload another
+    document.getElementById('btn-upload-another').addEventListener('click', () => {
+      resultCard.classList.remove('show');
+      uploadCard.style.display = '';
+      clearFile();
+      document.getElementById('qrcode').innerHTML = '';
+      document.getElementById('expiry-warning').style.display = 'none';
+      trackUrl = '';
+      btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
+    });
+
+    // Handle direct result URL (e.g. /r/... redirect pages)
+    const path = window.location.pathname;
+    if (path.startsWith('/r/')) {
+      // handled by backend redirect, nothing to do
+    }
+  </script>
+</body>
+</html>

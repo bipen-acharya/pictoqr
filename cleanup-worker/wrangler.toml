@@ -1,0 +1,14 @@
+name            = "pictoqr-cleanup"
+main            = "index.js"
+compatibility_date = "2024-09-23"
+
+[triggers]
+crons = ["0 3 * * *"]   # daily at 03:00 UTC
+
+[vars]
+RAILWAY_URL = "https://pictoqr-production.up.railway.app"
+
+# CLEANUP_SECRET must be set as a Cloudflare secret — never put it in plain text here.
+# After deploying, run:
+#   wrangler secret put CLEANUP_SECRET
+# Enter the value: pictoqr-cleanup-secret-2024

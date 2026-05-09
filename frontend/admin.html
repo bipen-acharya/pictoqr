@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PictoQR Admin</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #161a23;
+      --surface2: #1e2330;
+      --border:   rgba(255,255,255,.07);
+      --border2:  rgba(255,255,255,.12);
+      --text:     #e8eaf0;
+      --muted:    rgba(232,234,240,.45);
+      --accent:   #3b82f6;
+      --accent-d: #2563eb;
+      --green:    #10b981;
+      --amber:    #f59e0b;
+      --red:      #ef4444;
+      --radius:   12px;
+      --font:     'DM Sans', system-ui, sans-serif;
+      --mono:     'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Login gate ────────────────────────────────────────────── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 40px;
+      width: 360px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+    }
+    .login-logo {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 28px;
+    }
+    .login-mark {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: grid; place-items: center;
+    }
+    .login-title { font-size: 1.4rem; font-weight: 700; }
+    .login-sub { font-size: .85rem; color: var(--muted); margin-bottom: 24px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .field label { font-size: .78rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .field input {
+      background: var(--bg);
+      border: 1.5px solid var(--border2);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-family: var(--mono);
+      font-size: .9rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s;
+    }
+    .field input:focus { border-color: var(--accent); }
+
+    .btn-login {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--font);
+      font-size: .95rem; font-weight: 600;
+      padding: 13px;
+      border-radius: 50px;
+      border: none; cursor: pointer;
+      transition: background .2s, transform .15s;
+      margin-top: 4px;
+    }
+    .btn-login:hover { background: var(--accent-d); transform: translateY(-1px); }
+
+    .login-err {
+      display: none;
+      color: var(--red);
+      font-size: .8rem;
+      margin-top: 12px;
+      text-align: center;
+    }
+    .login-err.show { display: block; }
+
+    /* ── App shell ──────────────────────────────────────────────── */
+    #app { display: none; min-height: 100vh; }
+    #app.show { display: flex; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: sticky; top: 0; height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 22px 20px;
+      border-bottom: 1px solid var(--border);
+      text-decoration: none;
+    }
+    .sb-mark {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .sb-name { font-size: .95rem; font-weight: 700; color: var(--text); }
+    .sb-badge {
+      font-size: .62rem; font-weight: 700;
+      background: rgba(59,130,246,.2);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: auto;
+    }
+
+    nav.sb-nav { padding: 12px 10px; flex: 1; }
+    .sb-section { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: 10px 8px 6px; }
+    .sb-link {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: .875rem; font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .sb-link:hover { background: var(--surface2); color: var(--text); }
+    .sb-link.active { background: rgba(59,130,246,.12); color: var(--accent); }
+
+    .sidebar-footer {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-logout {
+      display: flex; align-items: center; gap: 8px;
+      width: 100%; background: none; border: none;
+      font-family: var(--font); font-size: .8rem; color: var(--muted);
+      cursor: pointer; padding: 8px 4px;
+      transition: color .2s;
+    }
+    .btn-logout:hover { color: var(--red); }
+
+    /* Main content */
+    .main {
+      flex: 1; overflow: auto;
+      padding: 32px 36px;
+      background: var(--bg);
+    }
+
+    /* Page header */
+    .page-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .page-title { font-size: 1.5rem; font-weight: 700; }
+    .page-sub { font-size: .875rem; color: var(--muted); margin-top: 3px; }
+
+    .btn-refresh {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: .825rem; font-weight: 500;
+      padding: 9px 16px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .btn-refresh:hover { background: var(--surface2); border-color: var(--border2); }
+    .btn-refresh.spinning svg { animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Sections (tab panels) */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Stat cards ─────────────────────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: border-color .2s;
+    }
+    .stat-card:hover { border-color: var(--border2); }
+    .stat-label {
+      font-size: .72rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .stat-value {
+      font-size: 2rem; font-weight: 700;
+      line-height: 1; color: var(--text);
+    }
+    .stat-value.green { color: var(--green); }
+    .stat-value.blue  { color: var(--accent); }
+    .stat-sub { font-size: .75rem; color: var(--muted); margin-top: 6px; }
+
+    /* ── Chart ──────────────────────────────────────────────────── */
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+    .chart-title {
+      font-size: .875rem; font-weight: 600;
+      margin-bottom: 20px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+    .chart-area {
+      display: flex; align-items: flex-end; gap: 4px;
+      height: 120px;
+    }
+    .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bar {
+      width: 100%; min-width: 6px;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      opacity: .7;
+      transition: opacity .2s, height .4s cubic-bezier(.22,1,.36,1);
+    }
+    .bar:hover { opacity: 1; }
+    .bar-label { font-size: .6rem; color: var(--muted); white-space: nowrap; }
+    .chart-empty { color: var(--muted); font-size: .875rem; padding: 20px 0; text-align: center; }
+
+    /* ── Files table ────────────────────────────────────────────── */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 10px;
+    }
+    .table-title { font-size: .875rem; font-weight: 600; }
+    .table-count { font-size: .78rem; color: var(--muted); }
+
+    .search-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .search-input {
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-family: var(--font);
+      font-size: .825rem;
+      color: var(--text);
+      outline: none;
+      width: 200px;
+      transition: border-color .2s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-input::placeholder { color: var(--muted); }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      text-align: left;
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--muted);
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+    td {
+      padding: 12px 20px;
+      font-size: .85rem;
+      vertical-align: middle;
+    }
+
+    .file-name-cell { display: flex; align-items: center; gap: 10px; }
+    .file-icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      background: rgba(59,130,246,.12);
+      border-radius: 7px;
+      display: grid; place-items: center;
+      font-size: .65rem; font-weight: 700;
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+    .file-fname { font-weight: 500; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-id { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: .7rem; font-weight: 600;
+    }
+    .badge-green { background: rgba(16,185,129,.12); color: var(--green); }
+    .badge-amber { background: rgba(245,158,11,.12); color: var(--amber); }
+    .badge-red   { background: rgba(239,68,68,.12);  color: var(--red); }
+    .badge-gray  { background: rgba(255,255,255,.06); color: var(--muted); }
+
+    .btn-del {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 6px 8px;
+      border-radius: 6px; transition: color .15s, background .15s;
+    }
+    .btn-del:hover { color: var(--red); background: rgba(239,68,68,.1); }
+
+    /* Pagination */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      font-size: .8rem; color: var(--muted);
+    }
+    .page-btns { display: flex; gap: 6px; }
+    .btn-page {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); font-family: var(--font); font-size: .8rem;
+      padding: 6px 12px; border-radius: 7px; cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-page:hover { background: var(--border2); }
+    .btn-page:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* Sweep panel */
+    .sweep-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .sweep-title { font-size: .9rem; font-weight: 600; margin-bottom: 6px; }
+    .sweep-desc { font-size: .825rem; color: var(--muted); margin-bottom: 16px; line-height: 1.6; }
+    .btn-danger {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(239,68,68,.12);
+      border: 1px solid rgba(239,68,68,.25);
+      color: var(--red);
+      font-family: var(--font); font-size: .875rem; font-weight: 600;
+      padding: 10px 20px; border-radius: 50px; cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .btn-danger:hover { background: rgba(239,68,68,.2); border-color: rgba(239,68,68,.4); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 48px 20px;
+      color: var(--muted); font-size: .9rem;
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+      height: 14px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    /* Top files list */
+    .top-files { display: flex; flex-direction: column; gap: 10px; }
+    .top-file-row {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .top-rank { font-size: .7rem; font-weight: 700; color: var(--muted); width: 16px; text-align: right; }
+    .top-bar-wrap { flex: 1; position: relative; height: 24px; background: var(--surface2); border-radius: 6px; overflow: hidden; }
+    .top-bar-fill {
+      height: 100%; background: linear-gradient(90deg, rgba(59,130,246,.3), rgba(59,130,246,.5));
+      border-radius: 6px;
+      transition: width .5s cubic-bezier(.22,1,.36,1);
+    }
+    .top-bar-label {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      font-size: .72rem; font-weight: 500; color: var(--text);
+      white-space: nowrap; overflow: hidden; max-width: 80%;
+    }
+    .top-count { font-size: .75rem; font-weight: 600; color: var(--accent); min-width: 44px; text-align: right; }
+
+    /* Toast */
+    #admin-toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-size: .85rem; padding: 11px 20px;
+      border-radius: 50px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s, transform .25s cubic-bezier(.22,1,.36,1);
+      z-index: 999; white-space: nowrap;
+    }
+    #admin-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #admin-toast.ok   { border-color: rgba(16,185,129,.4); color: var(--green); }
+    #admin-toast.err  { border-color: rgba(239,68,68,.4);  color: var(--red); }
+
+    /* Modal confirm */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+      z-index: 200; align-items: center; justify-content: center;
+    }
+    #modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 28px;
+      width: 380px; max-width: 90vw;
+      box-shadow: 0 24px 64px rgba(0,0,0,.5);
+      animation: modalIn .25s cubic-bezier(.22,1,.36,1);
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(.95) translateY(8px); } }
+    .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .modal-body { font-size: .875rem; color: var(--muted); line-height: 1.6; margin-bottom: 22px; }
+    .modal-file { font-family: var(--mono); font-size: .8rem; color: var(--text); background: var(--surface2); padding: 4px 8px; border-radius: 5px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); font-family: var(--font); font-size: .875rem; font-weight: 500;
+      padding: 9px 18px; border-radius: 50px; cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .btn-cancel:hover { background: var(--border2); color: var(--text); }
+    .btn-confirm-del {
+      background: var(--red); border: none; color: #fff;
+      font-family: var(--font); font-size: .875rem; font-weight: 600;
+      padding: 9px 18px; border-radius: 50px; cursor: pointer;
+      transition: opacity .2s;
+    }
+    .btn-confirm-del:hover { opacity: .85; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Login screen ───────────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-mark">
+        <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+          <rect x="2" y="2" width="6" height="6" rx="1" fill="white"/>
+          <rect x="12" y="2" width="6" height="6" rx="1" fill="white"/>
+          <rect x="2" y="12" width="6" height="6" rx="1" fill="white"/>
+          <rect x="12" y="12" width="3" height="3" rx=".5" fill="white"/>
+          <rect x="15" y="15" width="3" height="3" rx=".5" fill="white"/>
+          <rect x="12" y="15" width="3" height="3" rx=".5" fill="white"/>
+          <rect x="15" y="12" width="3" height="3" rx=".5" fill="white"/>
+        </svg>
+      </div>
+      <span style="font-size:1.1rem;font-weight:700">PictoQR</span>
+    </div>
+    <div class="login-title">Admin Dashboard</div>
+    <p class="login-sub">Enter your API key to continue</p>
+
+    <div class="field">
+      <label>API Key</label>
+      <input type="password" id="api-key-input" placeholder="sk-•••••••••••••••••••" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-login" id="login-btn">Sign in →</button>
+    <div class="login-err" id="login-err">Invalid API key. Please try again.</div>
+  </div>
+</div>
+
+<!-- ── App ───────────────────────────────────────────────────────── -->
+<div id="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <div class="sb-mark">
+        <svg viewBox="0 0 20 20" fill="none" width="16" height="16">
+          <rect x="2" y="2" width="6" height="6" rx="1" fill="white"/>
+          <rect x="12" y="2" width="6" height="6" rx="1" fill="white"/>
+          <rect x="2" y="12" width="6" height="6" rx="1" fill="white"/>
+          <rect x="12" y="12" width="3" height="3" rx=".5" fill="white"/>
+          <rect x="15" y="15" width="3" height="3" rx=".5" fill="white"/>
+          <rect x="12" y="15" width="3" height="3" rx=".5" fill="white"/>
+          <rect x="15" y="12" width="3" height="3" rx=".5" fill="white"/>
+        </svg>
+      </div>
+      <span class="sb-name">PictoQR</span>
+      <span class="sb-badge">Admin</span>
+    </a>
+
+    <nav class="sb-nav">
+      <div class="sb-section">Menu</div>
+      <button class="sb-link active" data-panel="overview">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <rect x="1" y="1" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="8.5" y="1" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="1" y="8.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+          <rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+        Overview
+      </button>
+      <button class="sb-link" data-panel="files">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <path d="M3 2h6l3 3v8a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M9 2v3h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        Files
+      </button>
+      <button class="sb-link" data-panel="maintenance">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+          <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M7.5 4v3.5l2.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        Maintenance
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logout-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M5 12H3a1 1 0 01-1-1V3a1 1 0 011-1h2M9 10l3-3-3-3M12 7H5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Sign out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- ── Overview panel ──────────────────────────────────────── -->
+    <div id="panel-overview" class="panel active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Overview</div>
+          <div class="page-sub">Platform health &amp; activity</div>
+        </div>
+        <button class="btn-refresh" id="overview-refresh">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M12 2v4H8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12v-4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M11.3 5A5 5 0 102 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      <!-- Stat cards -->
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card"><div class="stat-label">Total Files</div><div class="stat-value blue skeleton" id="s-files" style="width:60px;height:36px"></div></div>
+        <div class="stat-card"><div class="stat-label">Total Scans</div><div class="stat-value green skeleton" id="s-scans" style="width:60px;height:36px"></div></div>
+        <div class="stat-card"><div class="stat-label">Scans Today</div><div class="stat-value skeleton" id="s-today" style="width:60px;height:36px"></div></div>
+        <div class="stat-card"><div class="stat-label">Disk Usage</div><div class="stat-value skeleton" id="s-disk" style="width:80px;height:36px"></div></div>
+      </div>
+
+      <!-- Scans chart -->
+      <div class="chart-card">
+        <div class="chart-title">Scans — last 30 days</div>
+        <div class="chart-area" id="scans-chart">
+          <div class="chart-empty">Loading chart…</div>
+        </div>
+      </div>
+
+      <!-- Two column: recent + top -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:0">
+
+        <!-- Recent uploads -->
+        <div class="chart-card" style="margin-bottom:0">
+          <div class="chart-title">Recent uploads</div>
+          <div id="recent-files-list"></div>
+        </div>
+
+        <!-- Top files -->
+        <div class="chart-card" style="margin-bottom:0">
+          <div class="chart-title">Most scanned files</div>
+          <div class="top-files" id="top-files-list"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Files panel ──────────────────────────────────────────── -->
+    <div id="panel-files" class="panel">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Files</div>
+          <div class="page-sub" id="files-count-sub">All uploaded files</div>
+        </div>
+        <button class="btn-refresh" id="files-refresh">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M12 2v4H8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12v-4h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M11.3 5A5 5 0 102 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div>
+            <div class="table-title">All Files</div>
+            <div class="table-count" id="table-count"></div>
+          </div>
+          <div class="search-row">
+            <input type="text" class="search-input" id="files-search" placeholder="Search by name…" />
+          </div>
+        </div>
+
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Size</th>
+                <th>Scans</th>
+                <th>Uploaded</th>
+                <th>Expires</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="files-tbody">
+              <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">⏳</div>Loading…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <span id="page-info">–</span>
+          <div class="page-btns">
+            <button class="btn-page" id="btn-prev" disabled>← Prev</button>
+            <button class="btn-page" id="btn-next" disabled>Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Maintenance panel ─────────────────────────────────────── -->
+    <div id="panel-maintenance" class="panel">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Maintenance</div>
+          <div class="page-sub">Storage &amp; expiry management</div>
+        </div>
+      </div>
+
+      <div class="sweep-card">
+        <div class="sweep-title">Run expiry sweep</div>
+        <div class="sweep-desc">
+          Manually trigger the expiry worker to scan all files and permanently delete
+          any that have passed their expiry time. This runs automatically on a schedule
+          but you can force it here at any time.
+        </div>
+        <button class="btn-danger" id="btn-sweep">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 4h10M5 4V2h4v2M6 7v4M8 7v4M3 4l.7 8h6.6L11 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Run sweep now
+        </button>
+      </div>
+
+      <div class="sweep-card">
+        <div class="sweep-title">Server info</div>
+        <div class="sweep-desc">Current runtime environment details.</div>
+        <div id="server-info" style="font-family:var(--mono);font-size:.8rem;color:var(--muted);line-height:2">
+          Loading…
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Delete confirm modal ───────────────────────────────────────── -->
+<div id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Delete file?</div>
+    <div class="modal-body">
+      This will permanently remove the file and its QR code. Anyone using the link
+      will get a 404. This cannot be undone.<br><br>
+      <span class="modal-file" id="modal-fname">–</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="btn-confirm-del" id="modal-confirm">Delete permanently</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────────────── -->
+<div id="admin-toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── Config ──────────────────────────────────────────────────── */
+  const API_BASE  = window.PICTOQR_API_BASE || "http://localhost:3000";
+  const PAGE_SIZE = 20;
+
+  /* ── State ───────────────────────────────────────────────────── */
+  let apiKey      = sessionStorage.getItem("pq_admin_key") || "";
+  let allFiles    = [];
+  let filteredFiles = [];
+  let currentPage = 0;
+  let deleteTarget = null;
+
+  /* ── DOM ─────────────────────────────────────────────────────── */
+  const loginScreen  = document.getElementById("login-screen");
+  const app          = document.getElementById("app");
+  const apiKeyInput  = document.getElementById("api-key-input");
+  const loginBtn     = document.getElementById("login-btn");
+  const loginErr     = document.getElementById("login-err");
+  const logoutBtn    = document.getElementById("logout-btn");
+  const sbLinks      = document.querySelectorAll(".sb-link[data-panel]");
+  const toast        = document.getElementById("admin-toast");
+  const modalOverlay = document.getElementById("modal-overlay");
+  const modalFname   = document.getElementById("modal-fname");
+  const modalCancel  = document.getElementById("modal-cancel");
+  const modalConfirm = document.getElementById("modal-confirm");
+
+  /* ── Toast ───────────────────────────────────────────────────── */
+  let toastTimer;
+  function showToast(msg, type = "", dur = 3000) {
+    clearTimeout(toastTimer);
+    toast.textContent = msg;
+    toast.className   = `show ${type}`.trim();
+    toastTimer = setTimeout(() => { toast.className = ""; }, dur);
+  }
+
+  /* ── Auth headers ────────────────────────────────────────────── */
+  function authHeaders() {
+    return { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` };
+  }
+
+  /* ── API helpers ─────────────────────────────────────────────── */
+  async function apiFetch(path, opts = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...opts,
+      headers: { ...authHeaders(), ...(opts.headers || {}) },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(data.error || `HTTP ${res.status}`), { status: res.status });
+    return data;
+  }
+
+  /* ── Login ───────────────────────────────────────────────────── */
+  async function tryLogin() {
+    const key = apiKeyInput.value.trim();
+    if (!key) { loginErr.textContent = "Please enter your API key."; loginErr.classList.add("show"); return; }
+    loginBtn.textContent = "Verifying…";
+    loginBtn.disabled = true;
+    try {
+      apiKey = key;
+      await apiFetch("/api/admin/stats");
+      sessionStorage.setItem("pq_admin_key", key);
+      loginErr.classList.remove("show");
+      bootApp();
+    } catch (err) {
+      loginBtn.textContent = "Sign in →";
+      loginBtn.disabled = false;
+      loginErr.textContent = err.status === 401
+        ? "Invalid API key. Please try again."
+        : `Connection failed: ${err.message}`;
+      loginErr.classList.add("show");
+    }
+  }
+
+  loginBtn.addEventListener("click", tryLogin);
+  apiKeyInput.addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
+
+  /* ── Auto-login if key cached ────────────────────────────────── */
+  if (apiKey) {
+    apiFetch("/api/admin/stats")
+      .then(() => bootApp())
+      .catch(() => { apiKey = ""; sessionStorage.removeItem("pq_admin_key"); });
+  }
+
+  function bootApp() {
+    loginScreen.style.display = "none";
+    app.classList.add("show");
+    loadOverview();
+    loadServerInfo();
+  }
+
+  logoutBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("pq_admin_key");
+    location.reload();
+  });
+
+  /* ── Panel navigation ────────────────────────────────────────── */
+  sbLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      sbLinks.forEach(l => l.classList.remove("active"));
+      link.classList.add("active");
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      document.getElementById(`panel-${link.dataset.panel}`).classList.add("active");
+      if (link.dataset.panel === "files") loadFiles();
+    });
+  });
+
+  /* ── Formatters ──────────────────────────────────────────────── */
+  function fmtBytes(b) {
+    if (!b) return "0 B";
+    if (b < 1024) return b + " B";
+    if (b < 1048576) return (b/1024).toFixed(1) + " KB";
+    if (b < 1073741824) return (b/1048576).toFixed(1) + " MB";
+    return (b/1073741824).toFixed(2) + " GB";
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return "–";
+    const d = typeof ts === "number" ? new Date(ts * 1000) : new Date(ts);
+    return d.toLocaleDateString("en-AU", { day:"numeric", month:"short", year:"numeric" });
+  }
+
+  function fmtNum(n) {
+    return (n || 0).toLocaleString();
+  }
+
+  function expiryBadge(record) {
+    if (!record.expiresAt && !record.expires_at) return `<span class="badge badge-green">Never</span>`;
+    const ts = record.expires_at || record.expiresAt;
+    const expiry = typeof ts === "number" ? ts * 1000 : new Date(ts).getTime();
+    const diff = expiry - Date.now();
+    if (diff <= 0) return `<span class="badge badge-red">Expired</span>`;
+    const h = Math.floor(diff / 3600000);
+    const d = Math.floor(h / 24);
+    const label = d >= 1 ? `${d}d` : `${h}h`;
+    return `<span class="badge badge-amber">${label}</span>`;
+  }
+
+  function fileExt(name) {
+    const parts = (name || "").split(".");
+    return parts.length > 1 ? parts.pop().toUpperCase().slice(0, 4) : "FILE";
+  }
+
+  /* ── Overview ────────────────────────────────────────────────── */
+  async function loadOverview() {
+    const btn = document.getElementById("overview-refresh");
+    btn.classList.add("spinning");
+    try {
+      const stats = await apiFetch("/api/admin/stats");
+
+      // Stat cards
+      const sFiles = document.getElementById("s-files");
+      const sScans = document.getElementById("s-scans");
+      const sToday = document.getElementById("s-today");
+      const sDisk  = document.getElementById("s-disk");
+
+      [sFiles, sScans, sToday, sDisk].forEach(el => el.classList.remove("skeleton"));
+      [sFiles, sScans, sToday, sDisk].forEach(el => { el.style.width = ""; el.style.height = ""; });
+
+      sFiles.textContent = fmtNum(stats.totalFiles);
+      sScans.textContent = fmtNum(stats.totalScans);
+      sToday.textContent = fmtNum(stats.scansToday || 0);
+      sDisk.textContent  = fmtBytes(stats.diskUsageBytes || stats.totalSizeBytes);
+
+      document.getElementById("s-files").parentElement.querySelector(".stat-sub")?.remove();
+      document.getElementById("s-scans").parentElement.querySelector(".stat-sub")?.remove();
+
+      // Scans chart
+      renderScansChart(stats.scansByDay || []);
+
+      // Recent files
+      renderRecentFiles(stats.recentFiles || []);
+
+      // Top files
+      renderTopFiles(stats.topFiles || []);
+
+    } catch (err) {
+      showToast("Failed to load stats: " + err.message, "err");
+    } finally {
+      btn.classList.remove("spinning");
+    }
+  }
+
+  document.getElementById("overview-refresh").addEventListener("click", loadOverview);
+
+  function renderScansChart(days) {
+    const container = document.getElementById("scans-chart");
+    if (!days.length) { container.innerHTML = `<div class="chart-empty">No scan data yet</div>`; return; }
+
+    const max = Math.max(...days.map(d => d.scans), 1);
+    // Show last 30 days, fill gaps
+    const today = new Date();
+    const dayMap = {};
+    days.forEach(d => { dayMap[d.day] = d.scans; });
+
+    const bars = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const scans = dayMap[key] || 0;
+      const pct = Math.max(4, (scans / max) * 100);
+      const label = i % 7 === 0 ? key.slice(5) : "";
+      bars.push(`
+        <div class="bar-wrap" title="${key}: ${scans} scans">
+          <div class="bar" style="height:${pct}%;"></div>
+          <div class="bar-label">${label}</div>
+        </div>
+      `);
+    }
+    container.innerHTML = bars.join("");
+  }
+
+  function renderRecentFiles(files) {
+    const el = document.getElementById("recent-files-list");
+    if (!files.length) { el.innerHTML = `<div class="chart-empty">No uploads yet</div>`; return; }
+    el.innerHTML = files.slice(0, 6).map(f => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div class="file-icon">${fileExt(f.file_name || f.fileName)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.file_name || f.fileName || "–"}</div>
+          <div style="font-size:.72rem;color:var(--muted)">${fmtDate(f.created_at || f.uploadedAt)} · ${fmtBytes(f.file_size || f.fileSize)}</div>
+        </div>
+        <div style="font-size:.75rem;font-weight:600;color:var(--accent);flex-shrink:0">${fmtNum(f.scan_count || f.scanCount)} scans</div>
+      </div>
+    `).join("");
+  }
+
+  function renderTopFiles(files) {
+    const el = document.getElementById("top-files-list");
+    if (!files.length) { el.innerHTML = `<div class="chart-empty">No scan data yet</div>`; return; }
+    const maxScans = Math.max(...files.map(f => f.scan_count || f.scanCount || 0), 1);
+    el.innerHTML = files.map((f, i) => {
+      const scans = f.scan_count || f.scanCount || 0;
+      const pct = (scans / maxScans * 100).toFixed(1);
+      return `
+        <div class="top-file-row">
+          <div class="top-rank">${i+1}</div>
+          <div class="top-bar-wrap">
+            <div class="top-bar-fill" style="width:${pct}%"></div>
+            <div class="top-bar-label">${f.file_name || f.fileName || f.id || "–"}</div>
+          </div>
+          <div class="top-count">${fmtNum(scans)}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  /* ── Files table ─────────────────────────────────────────────── */
+  async function loadFiles() {
+    const btn = document.getElementById("files-refresh");
+    btn.classList.add("spinning");
+    try {
+      const data = await apiFetch("/api/admin/files?limit=500");
+      allFiles = data.files || [];
+      applyFilter();
+      document.getElementById("files-count-sub").textContent = `${fmtNum(data.total || allFiles.length)} files total`;
+    } catch (err) {
+      showToast("Failed to load files: " + err.message, "err");
+    } finally {
+      btn.classList.remove("spinning");
+    }
+  }
+
+  document.getElementById("files-refresh").addEventListener("click", loadFiles);
+
+  document.getElementById("files-search").addEventListener("input", function () {
+    const q = this.value.trim().toLowerCase();
+    filteredFiles = q
+      ? allFiles.filter(f => (f.file_name || f.fileName || "").toLowerCase().includes(q))
+      : allFiles;
+    currentPage = 0;
+    renderTable();
+  });
+
+  function applyFilter() {
+    const q = document.getElementById("files-search").value.trim().toLowerCase();
+    filteredFiles = q
+      ? allFiles.filter(f => (f.file_name || f.fileName || "").toLowerCase().includes(q))
+      : [...allFiles];
+    currentPage = 0;
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById("files-tbody");
+    const total = filteredFiles.length;
+    const start = currentPage * PAGE_SIZE;
+    const page  = filteredFiles.slice(start, start + PAGE_SIZE);
+
+    document.getElementById("table-count").textContent = `Showing ${start+1}–${Math.min(start+PAGE_SIZE, total)} of ${fmtNum(total)}`;
+    document.getElementById("page-info").textContent   = `Page ${currentPage+1} of ${Math.ceil(total/PAGE_SIZE) || 1}`;
+    document.getElementById("btn-prev").disabled = currentPage === 0;
+    document.getElementById("btn-next").disabled = start + PAGE_SIZE >= total;
+
+    if (!page.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📂</div>No files found</div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = page.map(f => {
+      const name      = f.file_name || f.fileName || "–";
+      const size      = fmtBytes(f.file_size || f.fileSize);
+      const scans     = fmtNum(f.scan_count || f.scanCount || 0);
+      const uploaded  = fmtDate(f.created_at || f.uploadedAt);
+      const id        = f.id || f.fileId;
+      return `
+        <tr>
+          <td>
+            <div class="file-name-cell">
+              <div class="file-icon">${fileExt(name)}</div>
+              <div>
+                <div class="file-fname" title="${name}">${name}</div>
+                <div class="file-id">${id ? id.slice(0,8) + "…" : ""}</div>
+              </div>
+            </div>
+          </td>
+          <td style="color:var(--muted)">${size}</td>
+          <td><span style="font-weight:600;color:var(--accent)">${scans}</span></td>
+          <td style="color:var(--muted)">${uploaded}</td>
+          <td>${expiryBadge(f)}</td>
+          <td>
+            <button class="btn-del" data-id="${id}" data-name="${name}" title="Delete file">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 4h10M5 4V2h4v2M6 7v4M8 7v4M3 4l.7 8h6.6L11 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    tbody.querySelectorAll(".btn-del").forEach(btn => {
+      btn.addEventListener("click", () => confirmDelete(btn.dataset.id, btn.dataset.name));
+    });
+  }
+
+  document.getElementById("btn-prev").addEventListener("click", () => { currentPage--; renderTable(); });
+  document.getElementById("btn-next").addEventListener("click", () => { currentPage++; renderTable(); });
+
+  /* ── Delete ──────────────────────────────────────────────────── */
+  function confirmDelete(id, name) {
+    deleteTarget = id;
+    modalFname.textContent = name;
+    modalOverlay.classList.add("show");
+  }
+
+  modalCancel.addEventListener("click", () => { modalOverlay.classList.remove("show"); deleteTarget = null; });
+  modalOverlay.addEventListener("click", e => { if (e.target === modalOverlay) { modalOverlay.classList.remove("show"); deleteTarget = null; } });
+
+  modalConfirm.addEventListener("click", async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget;
+    modalOverlay.classList.remove("show");
+    deleteTarget = null;
+
+    try {
+      await apiFetch(`/api/admin/files/${id}`, { method: "DELETE" });
+      allFiles = allFiles.filter(f => (f.id || f.fileId) !== id);
+      applyFilter();
+      showToast("File deleted.", "ok");
+    } catch (err) {
+      showToast("Delete failed: " + err.message, "err");
+    }
+  });
+
+  /* ── Maintenance ─────────────────────────────────────────────── */
+  document.getElementById("btn-sweep").addEventListener("click", async () => {
+    const btn = document.getElementById("btn-sweep");
+    btn.textContent = "Running…";
+    btn.disabled = true;
+    try {
+      const data = await apiFetch("/api/admin/sweep", { method: "POST" });
+      showToast(data.message || "Sweep complete.", "ok");
+    } catch (err) {
+      showToast("Sweep failed: " + err.message, "err");
+    } finally {
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M5 4V2h4v2M6 7v4M8 7v4M3 4l.7 8h6.6L11 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg> Run sweep now`;
+      btn.disabled = false;
+    }
+  });
+
+  async function loadServerInfo() {
+    try {
+      const data = await apiFetch("/api/health");
+      document.getElementById("server-info").innerHTML = `
+        Status &nbsp;&nbsp;&nbsp; <span style="color:var(--green)">● online</span><br>
+        Server time &nbsp; ${data.timestamp || new Date().toISOString()}<br>
+        API base &nbsp;&nbsp;&nbsp; ${API_BASE}
+      `;
+    } catch {
+      document.getElementById("server-info").textContent = "Could not reach API.";
+    }
+  }
+
+})();
+</script>
+</body>
+</html>

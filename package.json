@@ -1,0 +1,17 @@
+{
+  "name": "pictoqr",
+  "version": "1.0.0",
+  "description": "PictoQR file to QR app",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1033.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "qrcode": "^1.5.4"
+  }
+}

@@ -9,72 +9,127 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --indigo: #4F46E5;
-      --indigo-dark: #3730A3;
+      --indigo:       #4F46E5;
+      --indigo-dark:  #3730A3;
       --indigo-light: #EEF2FF;
-      --indigo-mid: #C7D2FE;
-      --surface: #FFFFFF;
-      --surface-2: #F8F7FF;
-      --surface-3: #F1F0F9;
-      --border: #E5E4F0;
-      --border-2: #D1D0E8;
-      --text-1: #1A1830;
-      --text-2: #4B4870;
-      --text-3: #8B88B0;
-      --success: #10B981;
-      --danger: #EF4444;
-      --radius: 16px;
-      --radius-sm: 10px;
-      --shadow: 0 4px 24px rgba(79,70,229,0.08), 0 1px 4px rgba(0,0,0,0.04);
-      --shadow-lg: 0 12px 48px rgba(79,70,229,0.14), 0 4px 12px rgba(0,0,0,0.06);
+      --indigo-mid:   #C7D2FE;
+      --violet:       #7C3AED;
+      --surface:      #FFFFFF;
+      --surface-2:    #F8F7FF;
+      --surface-3:    #F1F0F9;
+      --border:       #E5E4F0;
+      --border-2:     #D1D0E8;
+      --text-1:       #1A1830;
+      --text-2:       #4B4870;
+      --text-3:       #8B88B0;
+      --success:      #10B981;
+      --warning:      #F59E0B;
+      --danger:       #EF4444;
+      --radius:       16px;
+      --radius-sm:    10px;
+      --shadow:       0 4px 24px rgba(79,70,229,0.07), 0 1px 4px rgba(0,0,0,0.04);
+      --shadow-lg:    0 8px 32px rgba(79,70,229,0.12), 0 2px 8px rgba(0,0,0,0.05);
+      --shadow-xl:    0 20px 60px rgba(79,70,229,0.15), 0 8px 24px rgba(0,0,0,0.08);
+      --ease-spring:  cubic-bezier(0.34,1.56,0.64,1);
+      --ease-out:     cubic-bezier(0.16,1,0.3,1);
     }
 
     html { scroll-behavior: smooth; }
 
+    /* ── Animated gradient background ────────────────────────────────── */
     body {
       font-family: 'DM Sans', sans-serif;
       background: var(--surface-2);
       color: var(--text-1);
       min-height: 100vh;
       line-height: 1.6;
+      position: relative;
+      overflow-x: hidden;
     }
 
-    /* Subtle noise texture overlay */
+    /* Slow-drifting gradient orbs */
     body::before {
       content: '';
       position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.018'/%3E%3C/svg%3E");
+      top: -30vh;
+      right: -20vw;
+      width: 80vw;
+      height: 80vw;
+      max-width: 700px;
+      max-height: 700px;
+      background: radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 65%);
       pointer-events: none;
       z-index: 0;
+      animation: driftA 18s ease-in-out infinite alternate;
     }
     body::after {
       content: '';
       position: fixed;
-      top: -200px;
-      right: -200px;
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(79,70,229,0.07) 0%, transparent 70%);
+      bottom: -20vh;
+      left: -20vw;
+      width: 70vw;
+      height: 70vw;
+      max-width: 600px;
+      max-height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 65%);
       pointer-events: none;
       z-index: 0;
+      animation: driftB 22s ease-in-out infinite alternate;
+    }
+    @keyframes driftA {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(-4vw, 6vh) scale(1.08); }
+    }
+    @keyframes driftB {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(6vw, -4vh) scale(1.1); }
     }
 
-    /* NAV */
+    /* SVG noise texture overlay */
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.028;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── Upload progress bar ──────────────────────────────────────────── */
+    .progress-bar-wrap {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .progress-bar-wrap.active { opacity: 1; }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--indigo), var(--violet));
+      width: 0%;
+      transition: width 0.2s ease;
+      box-shadow: 0 0 8px rgba(79,70,229,0.6);
+    }
+
+    /* ── NAV ──────────────────────────────────────────────────────────── */
     nav {
       position: sticky;
       top: 0;
       z-index: 100;
       background: rgba(255,255,255,0.88);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       padding: 0 24px;
-      box-shadow: 0 1px 0 rgba(79,70,229,0.05);
     }
     .nav-inner {
       max-width: 960px;
@@ -89,19 +144,24 @@
       align-items: center;
       gap: 10px;
       text-decoration: none;
+      animation: logoScaleIn 0.6s var(--ease-spring) both;
+    }
+    @keyframes logoScaleIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: 1; transform: scale(1); }
     }
     .logo-icon {
       width: 34px;
       height: 34px;
       border-radius: 9px;
-      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
-      box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+      transition: transform 0.3s var(--ease-spring);
+      box-shadow: 0 3px 10px rgba(79,70,229,0.35);
     }
-    .logo:hover .logo-icon { transform: scale(1.1) rotate(-4deg); }
+    .logo:hover .logo-icon { transform: scale(1.12) rotate(-5deg); }
     .logo-icon svg { width: 20px; height: 20px; }
     .logo-name {
       font-family: 'Outfit', sans-serif;
@@ -130,44 +190,37 @@
       border-radius: 50%;
       background: var(--success);
       display: inline-block;
-      animation: navPulse 2s infinite;
+      animation: blink 2s infinite;
     }
-    @keyframes navPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.75); }
+    @keyframes blink {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.35; transform: scale(0.7); }
     }
 
-    /* MAIN LAYOUT */
+    /* ── MAIN ─────────────────────────────────────────────────────────── */
     main {
       max-width: 960px;
       margin: 0 auto;
       padding: 48px 24px 80px;
       position: relative;
-      z-index: 1;
+      z-index: 2;
     }
 
-    /* HERO */
-    .hero {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeUp 0.55s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* ── HERO ─────────────────────────────────────────────────────────── */
+    .hero { text-align: center; margin-bottom: 40px; }
     .hero h1 {
       font-family: 'Outfit', sans-serif;
-      font-size: clamp(28px, 5vw, 44px);
+      font-size: clamp(28px, 5vw, 46px);
       font-weight: 700;
       color: var(--text-1);
       letter-spacing: -1px;
       line-height: 1.15;
       margin-bottom: 12px;
+      animation: fadeUpHero 0.6s var(--ease-out) both;
     }
     .hero h1 em {
       font-style: normal;
-      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -177,21 +230,25 @@
       color: var(--text-2);
       max-width: 420px;
       margin: 0 auto;
+      animation: fadeUpHero 0.6s 0.1s var(--ease-out) both;
+    }
+    @keyframes fadeUpHero {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* CARD */
+    /* ── CARD ─────────────────────────────────────────────────────────── */
     .card {
       background: var(--surface);
       border-radius: var(--radius);
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       overflow: hidden;
-      animation: fadeUp 0.55s 0.08s cubic-bezier(0.16,1,0.3,1) both;
+      animation: fadeUpHero 0.6s 0.18s var(--ease-out) both;
     }
-
     .card-body { padding: 28px; }
 
-    /* DROP ZONE */
+    /* ── DROP ZONE ────────────────────────────────────────────────────── */
     .drop-zone {
       border: 2px dashed var(--border-2);
       border-radius: var(--radius-sm);
@@ -199,7 +256,11 @@
       padding: 40px 24px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      transition:
+        border-color 0.25s ease,
+        background   0.25s ease,
+        box-shadow   0.25s ease,
+        transform    0.3s var(--ease-spring);
       position: relative;
     }
     .drop-zone:hover {
@@ -208,16 +269,27 @@
     }
     .drop-zone.drag-over {
       border-color: var(--indigo);
-      background: var(--indigo-light);
-      box-shadow: 0 0 0 4px rgba(79,70,229,0.12), 0 0 24px rgba(79,70,229,0.15);
-      transform: scale(1.01);
-      animation: dropGlow 1.2s ease-in-out infinite;
+      background:   var(--indigo-light);
+      transform:    scale(1.015);
+      box-shadow:   0 0 0 5px rgba(79,70,229,0.13), 0 0 32px rgba(79,70,229,0.18);
+      animation:    dropPulse 1.1s ease-in-out infinite;
     }
-    @keyframes dropGlow {
-      0%, 100% { box-shadow: 0 0 0 4px rgba(79,70,229,0.12), 0 0 24px rgba(79,70,229,0.15); }
-      50% { box-shadow: 0 0 0 6px rgba(79,70,229,0.2), 0 0 40px rgba(79,70,229,0.25); }
+    @keyframes dropPulse {
+      0%,100% { box-shadow: 0 0 0 5px rgba(79,70,229,0.13), 0 0 32px rgba(79,70,229,0.18); }
+      50%      { box-shadow: 0 0 0 8px rgba(79,70,229,0.22), 0 0 48px rgba(79,70,229,0.28); }
+    }
+    .drop-zone.accepted {
+      border-color: var(--success);
+      background: rgba(16,185,129,0.05);
+      animation: acceptedFlash 0.4s var(--ease-out) forwards;
+    }
+    @keyframes acceptedFlash {
+      0%   { background: rgba(16,185,129,0.2); }
+      100% { background: rgba(16,185,129,0.05); }
     }
     .drop-zone input { display: none; }
+
+    /* Floating idle animation on icon */
     .drop-icon {
       width: 52px;
       height: 52px;
@@ -228,15 +300,34 @@
       align-items: center;
       justify-content: center;
       margin: 0 auto 16px;
-      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      animation: iconFloat 3.5s ease-in-out infinite;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.3s var(--ease-spring);
     }
-    .drop-zone:hover .drop-icon, .drop-zone.drag-over .drop-icon {
+    @keyframes iconFloat {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-5px); }
+    }
+    .drop-zone.drag-over .drop-icon,
+    .drop-zone:hover .drop-icon {
       border-color: var(--indigo-mid);
-      box-shadow: 0 4px 16px rgba(79,70,229,0.18);
-      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(79,70,229,0.2);
+      animation: none;
+      transform: translateY(-4px) scale(1.08);
     }
-    .drop-icon svg { width: 24px; height: 24px; color: var(--indigo); }
+    /* Checkmark icon shown after accepted */
+    .drop-icon.accepted-icon {
+      background: var(--success);
+      border-color: var(--success);
+      animation: checkPop 0.4s var(--ease-spring);
+    }
+    @keyframes checkPop {
+      0%   { transform: scale(0.6); }
+      100% { transform: scale(1); }
+    }
+    .drop-icon svg { width: 24px; height: 24px; color: var(--indigo); transition: color 0.2s; }
+    .drop-icon.accepted-icon svg { color: white; }
+
     .drop-zone h3 {
       font-family: 'Outfit', sans-serif;
       font-size: 16px;
@@ -259,21 +350,18 @@
       padding: 8px 20px;
       border-radius: 100px;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      transition: all 0.25s var(--ease-spring);
     }
     .btn-choose:hover {
       background: var(--indigo);
       border-color: var(--indigo);
       color: white;
-      transform: scale(1.04);
+      transform: scale(1.05);
     }
-    .drop-hint {
-      margin-top: 12px;
-      font-size: 12px;
-      color: var(--text-3);
-    }
+    .btn-choose:active { transform: scale(0.97); }
+    .drop-hint { margin-top: 12px; font-size: 12px; color: var(--text-3); }
 
-    /* FILE SELECTED STATE */
+    /* ── FILE SELECTED STATE ──────────────────────────────────────────── */
     .file-selected {
       display: none;
       align-items: center;
@@ -283,182 +371,126 @@
       border-radius: var(--radius-sm);
       border: 1px solid var(--indigo-mid);
       margin-bottom: 20px;
-      animation: fadeUp 0.3s cubic-bezier(0.16,1,0.3,1);
+      animation: fadeUpHero 0.3s var(--ease-out);
     }
     .file-selected.show { display: flex; }
     .file-thumb {
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 10px;
-      background: var(--indigo);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--indigo), var(--violet));
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .file-thumb svg { width: 20px; height: 20px; color: white; }
     .file-info { flex: 1; min-width: 0; }
-    .file-info .file-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-1);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .file-info .file-size {
-      font-size: 12px;
-      color: var(--text-3);
-    }
+    .file-info .file-name { font-size: 14px; font-weight: 500; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-info .file-size { font-size: 12px; color: var(--text-3); }
     .btn-remove {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: var(--text-3);
-      padding: 4px;
-      border-radius: 6px;
-      transition: all 0.15s ease;
-      display: flex;
+      background: none; border: none; cursor: pointer; color: var(--text-3);
+      padding: 4px; border-radius: 6px; transition: all 0.15s ease; display: flex;
     }
     .btn-remove:hover { color: var(--danger); background: rgba(239,68,68,0.08); }
 
-    /* CUSTOMIZE SECTION */
+    /* ── CUSTOMIZE ────────────────────────────────────────────────────── */
     .customize-section { margin-top: 20px; }
     .customize-toggle {
       width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       background: var(--surface-3);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 12px 16px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-2);
+      font-size: 14px; font-weight: 500; color: var(--text-2);
       transition: all 0.2s ease;
     }
     .customize-toggle:hover { border-color: var(--indigo-mid); color: var(--indigo); }
     .customize-toggle svg { width: 16px; height: 16px; transition: transform 0.3s ease; }
     .customize-toggle.open svg { transform: rotate(180deg); }
     .customize-toggle-left { display: flex; align-items: center; gap: 8px; }
-
-    .customize-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
-      opacity: 0;
-    }
-    .customize-body.open { max-height: 320px; opacity: 1; }
+    .customize-body { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; opacity: 0; }
+    .customize-body.open { max-height: 360px; opacity: 1; }
     .customize-inner { padding: 20px 4px 4px; }
+    .option-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
 
-    .option-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin-bottom: 10px;
-    }
-
-    /* EXPIRY BUTTONS */
-    .expiry-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-    }
+    /* ── EXPIRY BUTTONS ───────────────────────────────────────────────── */
+    .expiry-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
     .expiry-btn {
       font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
+      font-size: 13px; font-weight: 500;
       padding: 7px 16px;
       border-radius: 100px;
       border: 1.5px solid var(--border-2);
       background: var(--surface);
       color: var(--text-2);
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      transition: all 0.22s var(--ease-spring);
     }
-    .expiry-btn:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.03); }
+    .expiry-btn:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.04); }
+    .expiry-btn:active { transform: scale(0.97); }
     .expiry-btn.active {
-      background: var(--indigo);
-      border-color: var(--indigo);
+      background: linear-gradient(135deg, var(--indigo), var(--violet));
+      border-color: transparent;
       color: white;
-      box-shadow: 0 3px 10px rgba(79,70,229,0.3);
-      transform: scale(1.04);
+      box-shadow: 0 3px 12px rgba(79,70,229,0.32);
+      transform: scale(1.05);
     }
 
-    /* COLOR SWATCHES */
+    /* ── COLOR SWATCHES ───────────────────────────────────────────────── */
     .color-group { display: flex; gap: 10px; }
     .color-swatch {
-      width: 30px;
-      height: 30px;
+      width: 30px; height: 30px;
       border-radius: 50%;
       border: 2.5px solid transparent;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-      position: relative;
+      transition: all 0.22s var(--ease-spring);
     }
-    .color-swatch:hover { transform: scale(1.2); }
+    .color-swatch:hover { transform: scale(1.22); }
+    .color-swatch:active { transform: scale(0.95); }
     .color-swatch.active {
       border-color: var(--text-1);
-      box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px currentColor;
+      box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px rgba(0,0,0,0.25);
       transform: scale(1.15);
     }
 
-    /* DIVIDER */
+    /* ── DIVIDER ──────────────────────────────────────────────────────── */
     .divider { height: 1px; background: var(--border); margin: 24px 0; }
 
-    /* GENERATE BTN */
+    /* ── GENERATE BUTTON ──────────────────────────────────────────────── */
     .btn-generate {
       width: 100%;
       font-family: 'Outfit', sans-serif;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 16px; font-weight: 600;
       color: white;
-      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
       border: none;
       padding: 15px 24px;
       border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease, opacity 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       letter-spacing: -0.2px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 14px rgba(79,70,229,0.25);
+      box-shadow: 0 4px 16px rgba(79,70,229,0.28);
+      position: relative; overflow: hidden;
     }
-    .btn-generate::before {
+    .btn-generate::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%);
-      opacity: 0;
-      transition: opacity 0.2s;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0s;
     }
     .btn-generate:hover:not(:disabled) {
       transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 8px 24px rgba(79,70,229,0.4);
+      box-shadow: 0 8px 28px rgba(79,70,229,0.42);
     }
-    .btn-generate:hover:not(:disabled)::before { opacity: 1; }
-    .btn-generate:active:not(:disabled) { transform: translateY(0) scale(0.99); }
-    .btn-generate:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
+    .btn-generate:active:not(:disabled) { transform: scale(0.97); }
+    .btn-generate:disabled { opacity: 0.42; cursor: not-allowed; transform: none; box-shadow: none; }
     .btn-generate svg { width: 18px; height: 18px; }
 
-    /* LOADING SPINNER */
+    /* ── SPINNER ──────────────────────────────────────────────────────── */
     .spinner {
-      width: 18px;
-      height: 18px;
+      width: 18px; height: 18px;
       border: 2.5px solid rgba(255,255,255,0.3);
       border-top-color: white;
       border-radius: 50%;
@@ -467,83 +499,62 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* SKELETON LOADING */
-    .skeleton {
-      background: linear-gradient(90deg, var(--surface-3) 25%, var(--border) 50%, var(--surface-3) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
+    /* ── QR SKELETON ──────────────────────────────────────────────────── */
+    .qr-skeleton {
+      width: 200px; height: 200px;
       border-radius: 8px;
+      background: linear-gradient(90deg, var(--surface-3) 25%, #e8e6f6 50%, var(--surface-3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.3s infinite;
+      display: none;
     }
+    .qr-skeleton.show { display: block; }
     @keyframes shimmer {
-      0% { background-position: 200% 0; }
+      0%   { background-position: 200% 0; }
       100% { background-position: -200% 0; }
     }
 
-    /* RESULT CARD */
-    .result-card {
-      display: none;
-      transform-origin: top center;
-    }
+    /* ── RESULT CARD ──────────────────────────────────────────────────── */
+    .result-card { display: none; }
     .result-card.show {
       display: block;
-      animation: resultReveal 0.55s cubic-bezier(0.16,1,0.3,1) both;
+      animation: resultReveal 0.55s var(--ease-out) both;
     }
     @keyframes resultReveal {
-      from { opacity: 0; transform: scale(0.95) translateY(12px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
+      from { opacity: 0; transform: scale(0.95) translateY(14px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
     }
+    .result-card.expired-state { filter: grayscale(0.6); opacity: 0.7; pointer-events: none; }
 
     .result-header {
       padding: 20px 28px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      display: flex; align-items: center; gap: 12px;
     }
     .result-file-icon {
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 12px;
       background: var(--indigo-light);
       border: 1px solid var(--indigo-mid);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .result-file-icon svg { width: 22px; height: 22px; color: var(--indigo); }
-    .result-file-info .file-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-1);
-      margin-bottom: 2px;
-    }
-    .result-file-info .file-meta {
-      font-size: 13px;
-      color: var(--text-3);
-    }
+    .result-file-info .file-name { font-size: 15px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+    .result-file-info .file-meta { font-size: 13px; color: var(--text-3); }
     .result-badge {
       margin-left: auto;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--success);
+      font-size: 12px; font-weight: 600; color: var(--success);
       background: rgba(16,185,129,0.08);
       border: 1px solid rgba(16,185,129,0.2);
       padding: 5px 12px;
       border-radius: 100px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      white-space: nowrap;
+      display: flex; align-items: center; gap: 5px; white-space: nowrap;
     }
     .result-badge::before {
       content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--success);
-      display: inline-block;
-      animation: navPulse 2s infinite;
+      width: 6px; height: 6px;
+      border-radius: 50%; background: var(--success); display: inline-block;
+      animation: blink 2s infinite;
     }
 
     .result-body {
@@ -554,24 +565,24 @@
       align-items: start;
     }
 
-    /* QR CODE */
+    /* ── QR WRAPPER ───────────────────────────────────────────────────── */
     .qr-wrapper {
       background: white;
       border-radius: 18px;
       padding: 18px;
       border: 1px solid var(--border);
-      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow-lg);
       display: inline-block;
-      animation: qrAppear 0.55s 0.15s cubic-bezier(0.34,1.56,0.64,1) both;
+      animation: qrPop 0.55s 0.12s var(--ease-spring) both;
     }
-    @keyframes qrAppear {
-      from { opacity: 0; transform: scale(0.82); }
-      to { opacity: 1; transform: scale(1); }
+    @keyframes qrPop {
+      from { opacity: 0; transform: scale(0.78); }
+      to   { opacity: 1; transform: scale(1); }
     }
-    #qrcode { display: block; }
+    #qrcode { display: block; min-width: 200px; min-height: 200px; }
     #qrcode canvas, #qrcode img { border-radius: 8px; display: block; }
 
-    /* RESULT DETAILS */
+    /* ── RESULT DETAILS ───────────────────────────────────────────────── */
     .result-details { min-width: 0; }
 
     .stats-grid {
@@ -586,203 +597,181 @@
       border-radius: 12px;
       padding: 14px 12px;
       text-align: center;
-      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s ease;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: transform 0.22s var(--ease-spring), box-shadow 0.22s ease;
+    }
+    .stat-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out), box-shadow 0.22s ease;
     }
     .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 14px rgba(79,70,229,0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(79,70,229,0.12);
     }
     .stat-value {
       font-family: 'Outfit', sans-serif;
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-1);
-      line-height: 1.2;
+      font-size: 20px; font-weight: 700; color: var(--text-1); line-height: 1.2;
     }
     .stat-label {
-      font-size: 11px;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      font-weight: 500;
-      margin-top: 2px;
+      font-size: 11px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; margin-top: 2px;
+    }
+    /* Expiry urgency states */
+    .stat-card.expiry-warn .stat-value { color: var(--warning); }
+    .stat-card.expiry-crit {
+      border-color: rgba(239,68,68,0.3);
+      background: rgba(239,68,68,0.04);
+    }
+    .stat-card.expiry-crit .stat-value { color: var(--danger); }
+    .expiry-dot {
+      display: inline-block; width: 7px; height: 7px;
+      border-radius: 50%; background: var(--danger);
+      margin-right: 4px; vertical-align: middle;
+      animation: blink 0.8s infinite;
     }
 
-    /* LINK */
-    .link-box {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
+    /* ── LINK BOX ─────────────────────────────────────────────────────── */
+    .link-box { display: flex; gap: 8px; margin-bottom: 20px; }
     .link-input {
       flex: 1;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      color: var(--text-2);
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      outline: none;
-      min-width: 0;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-2);
+      background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px; outline: none; min-width: 0;
       transition: border-color 0.2s;
     }
     .link-input:focus { border-color: var(--indigo-mid); }
     .btn-copy {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-2);
-      background: var(--surface);
-      border: 1px solid var(--border-2);
-      border-radius: 10px;
-      padding: 10px 16px;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--text-2); background: var(--surface);
+      border: 1px solid var(--border-2); border-radius: 10px;
+      padding: 10px 16px; cursor: pointer;
+      transition: all 0.22s var(--ease-spring);
+      display: flex; align-items: center; gap: 6px; white-space: nowrap;
     }
     .btn-copy:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.03); }
-    .btn-copy.copied {
-      color: var(--success);
-      border-color: rgba(16,185,129,0.3);
-      background: rgba(16,185,129,0.06);
-    }
+    .btn-copy:active { transform: scale(0.97); }
+    .btn-copy.copied { color: var(--success); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); }
     .btn-copy svg { width: 14px; height: 14px; }
 
-    /* ACTION BUTTONS */
-    .action-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
+    /* ── ACTION BUTTONS ───────────────────────────────────────────────── */
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
     .btn-action {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      border-radius: 10px;
-      padding: 11px 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
-      text-decoration: none;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      border-radius: 10px; padding: 11px 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: all 0.22s var(--ease-spring);
+      text-decoration: none; position: relative; overflow: hidden;
     }
+    .btn-action:active { transform: scale(0.97); }
     .btn-action svg { width: 16px; height: 16px; }
     .btn-primary {
-      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-      color: white;
-      border: none;
-      box-shadow: 0 3px 10px rgba(79,70,229,0.25);
+      background: linear-gradient(135deg, var(--indigo), var(--violet));
+      color: white; border: none;
+      box-shadow: 0 3px 12px rgba(79,70,229,0.28);
     }
-    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 18px rgba(79,70,229,0.35); }
-    .btn-secondary {
-      background: var(--surface);
-      color: var(--text-2);
-      border: 1px solid var(--border-2);
+    /* Shimmer sweep on hover */
+    .btn-primary::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.22) 50%, transparent 65%);
+      transform: translateX(-100%);
+      transition: transform 0.45s ease;
     }
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 7px 22px rgba(79,70,229,0.38);
+    }
+    .btn-primary:hover::after { transform: translateX(100%); }
+    .btn-secondary { background: var(--surface); color: var(--text-2); border: 1px solid var(--border-2); }
     .btn-secondary:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: translateY(-1px); }
 
-    /* EXPIRY WARNING */
+    /* ── EXPIRY WARNING ───────────────────────────────────────────────── */
     .expiry-warning {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: flex; align-items: center; gap: 10px;
       padding: 12px 14px;
       background: rgba(245,158,11,0.06);
       border: 1px solid rgba(245,158,11,0.2);
       border-radius: 10px;
-      font-size: 13px;
-      color: #92400e;
+      font-size: 13px; color: #92400e;
     }
-    .expiry-warning svg { width: 16px; height: 16px; color: #F59E0B; flex-shrink: 0; }
+    .expiry-warning svg { width: 16px; height: 16px; color: var(--warning); flex-shrink: 0; }
 
-    /* UPLOAD ANOTHER */
+    /* Expired overlay */
+    .expired-overlay {
+      display: none;
+      margin-top: 12px;
+      padding: 16px;
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 14px; font-weight: 500; color: var(--danger);
+    }
+    .expired-overlay.show { display: block; }
+
+    /* ── UPLOAD ANOTHER ───────────────────────────────────────────────── */
     .btn-upload-another {
       width: 100%;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-2);
-      background: var(--surface-3);
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      color: var(--text-2); background: var(--surface-3);
       border: 1.5px dashed var(--border-2);
-      padding: 13px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      margin-top: 12px;
+      padding: 13px; border-radius: 10px; cursor: pointer;
+      transition: all 0.22s var(--ease-spring);
+      display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 12px;
     }
-    .btn-upload-another:hover {
-      border-color: var(--indigo);
-      color: var(--indigo);
-      background: var(--indigo-light);
-      transform: scale(1.01);
-    }
+    .btn-upload-another:hover { border-color: var(--indigo); color: var(--indigo); background: var(--indigo-light); transform: scale(1.01); }
+    .btn-upload-another:active { transform: scale(0.98); }
     .btn-upload-another svg { width: 16px; height: 16px; }
 
-    /* CONFETTI */
-    .confetti-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 9999;
-      overflow: hidden;
-    }
-    .confetti-piece {
-      position: absolute;
-      top: -12px;
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-      animation: confettiFall linear forwards;
-    }
-    @keyframes confettiFall {
-      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-      85% { opacity: 1; }
-      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-    }
-
-    /* FOOTER */
+    /* ── FOOTER ───────────────────────────────────────────────────────── */
     footer {
-      text-align: center;
-      padding: 32px 24px;
-      font-size: 13px;
-      color: var(--text-3);
-      position: relative;
-      z-index: 1;
+      text-align: center; padding: 32px 24px;
+      font-size: 13px; color: var(--text-3);
+      position: relative; z-index: 2;
     }
     footer a { color: var(--indigo); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
 
-    /* RESPONSIVE */
-    @media (max-width: 600px) {
+    /* ── TOOLTIP (expiry date on hover) ──────────────────────────────── */
+    [data-tooltip] { position: relative; cursor: default; }
+    [data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-1); color: white;
+      font-size: 11px; white-space: nowrap; padding: 4px 10px;
+      border-radius: 6px; pointer-events: none; z-index: 20;
+    }
+
+    /* ── MOBILE ───────────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
       main { padding: 28px 16px 60px; }
-      .result-body { grid-template-columns: 1fr; }
-      .qr-wrapper { display: flex; justify-content: center; }
-      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .result-body { grid-template-columns: 1fr; gap: 24px; }
+      .qr-wrapper { display: block; text-align: center; }
+      #qrcode, #qrcode canvas, #qrcode img { width: 100% !important; height: auto !important; }
+      .stats-grid { gap: 8px; }
       .action-row { grid-template-columns: 1fr; }
+      .result-header { flex-wrap: wrap; }
+      .result-badge { margin-left: 0; }
+      /* Larger tap targets */
+      .btn-action, .btn-copy, .btn-choose, .btn-upload-another { min-height: 44px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="confetti-container" id="confetti-container"></div>
+  <div class="noise" aria-hidden="true"></div>
+
+  <!-- Progress bar -->
+  <div class="progress-bar-wrap" id="progress-wrap" aria-hidden="true">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
 
   <nav>
     <div class="nav-inner">
-      <a href="/" class="logo">
+      <a href="/" class="logo" aria-label="PictoQR home">
         <div class="logo-icon">
           <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white"/>
@@ -799,7 +788,7 @@
         </div>
         <span class="logo-name">Picto<span>QR</span></span>
       </a>
-      <div class="nav-badge">Free · No sign-up</div>
+      <div class="nav-badge" aria-label="Service status">Free · No sign-up</div>
     </div>
   </nav>
 
@@ -808,15 +797,14 @@
     <!-- HERO -->
     <div class="hero">
       <h1>Turn any file into a<br /><em>scannable QR code</em></h1>
-      <p>Upload a file, get a QR code. Share instantly — no account needed.</p>
+      <p>Upload a file, get a short link &amp; QR code. Share instantly — no account needed.</p>
     </div>
 
     <!-- UPLOAD CARD -->
     <div class="card" id="upload-card">
       <div class="card-body">
 
-        <!-- File selected indicator -->
-        <div class="file-selected" id="file-selected">
+        <div class="file-selected" id="file-selected" role="status">
           <div class="file-thumb">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </div>
@@ -824,16 +812,15 @@
             <div class="file-name" id="selected-file-name"></div>
             <div class="file-size" id="selected-file-size"></div>
           </div>
-          <button class="btn-remove" id="btn-remove-file" title="Remove file">
+          <button class="btn-remove" id="btn-remove-file" title="Remove file" aria-label="Remove file">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
 
-        <!-- Drop zone -->
-        <div class="drop-zone" id="drop-zone">
-          <input type="file" id="file-input" />
-          <div class="drop-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Drop file here or click to browse">
+          <input type="file" id="file-input" aria-label="File input" />
+          <div class="drop-icon" id="drop-icon">
+            <svg id="drop-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
           <h3>Drop your file here</h3>
           <p>or click to browse from your device</p>
@@ -841,19 +828,18 @@
           <p class="drop-hint">Any file type · Up to 100 MB</p>
         </div>
 
-        <!-- Customize -->
         <div class="customize-section">
-          <button class="customize-toggle" id="customize-toggle" type="button">
+          <button class="customize-toggle" id="customize-toggle" type="button" aria-expanded="false">
             <span class="customize-toggle-left">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93L17.66 6.34M6.34 17.66l-1.41 1.41M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
               Customize
             </span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div class="customize-body" id="customize-body">
+          <div class="customize-body" id="customize-body" aria-hidden="true">
             <div class="customize-inner">
               <div class="option-label">Link Expiry</div>
-              <div class="expiry-group">
+              <div class="expiry-group" role="group" aria-label="Link expiry options">
                 <button class="expiry-btn" data-expiry="1h">1 hour</button>
                 <button class="expiry-btn" data-expiry="7h">7 hours</button>
                 <button class="expiry-btn" data-expiry="24h">24 hours</button>
@@ -861,23 +847,22 @@
                 <button class="expiry-btn" data-expiry="15d">15 days</button>
               </div>
               <div class="option-label">QR Color</div>
-              <div class="color-group">
-                <div class="color-swatch active" data-color="#4F46E5" style="background:#4F46E5;" title="Indigo"></div>
-                <div class="color-swatch" data-color="#0F172A" style="background:#0F172A;" title="Black"></div>
-                <div class="color-swatch" data-color="#0EA5E9" style="background:#0EA5E9;" title="Sky"></div>
-                <div class="color-swatch" data-color="#10B981" style="background:#10B981;" title="Emerald"></div>
-                <div class="color-swatch" data-color="#F59E0B" style="background:#F59E0B;" title="Amber"></div>
-                <div class="color-swatch" data-color="#EF4444" style="background:#EF4444;" title="Red"></div>
-                <div class="color-swatch" data-color="#EC4899" style="background:#EC4899;" title="Pink"></div>
+              <div class="color-group" role="group" aria-label="QR code color options">
+                <div class="color-swatch active" data-color="#4F46E5" style="background:#4F46E5;" title="Indigo" tabindex="0" role="radio" aria-checked="true" aria-label="Indigo"></div>
+                <div class="color-swatch" data-color="#0F172A" style="background:#0F172A;" title="Black" tabindex="0" role="radio" aria-checked="false" aria-label="Black"></div>
+                <div class="color-swatch" data-color="#0EA5E9" style="background:#0EA5E9;" title="Sky" tabindex="0" role="radio" aria-checked="false" aria-label="Sky blue"></div>
+                <div class="color-swatch" data-color="#10B981" style="background:#10B981;" title="Emerald" tabindex="0" role="radio" aria-checked="false" aria-label="Emerald"></div>
+                <div class="color-swatch" data-color="#F59E0B" style="background:#F59E0B;" title="Amber" tabindex="0" role="radio" aria-checked="false" aria-label="Amber"></div>
+                <div class="color-swatch" data-color="#EF4444" style="background:#EF4444;" title="Red" tabindex="0" role="radio" aria-checked="false" aria-label="Red"></div>
+                <div class="color-swatch" data-color="#EC4899" style="background:#EC4899;" title="Pink" tabindex="0" role="radio" aria-checked="false" aria-label="Pink"></div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="divider"></div>
+        <div class="divider" role="separator"></div>
 
-        <!-- Generate button -->
-        <button class="btn-generate" id="btn-generate" disabled>
+        <button class="btn-generate" id="btn-generate" disabled aria-disabled="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
           Generate QR Code
         </button>
@@ -885,65 +870,68 @@
     </div>
 
     <!-- RESULT CARD -->
-    <div class="card result-card" id="result-card">
+    <div class="card result-card" id="result-card" role="region" aria-label="QR code result" aria-live="polite">
       <div class="result-header">
-        <div class="result-file-icon">
+        <div class="result-file-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         </div>
         <div class="result-file-info">
           <div class="file-name" id="result-file-name"></div>
           <div class="file-meta" id="result-file-meta"></div>
         </div>
-        <div class="result-badge">QR code ready</div>
+        <div class="result-badge" aria-label="QR code ready">QR code ready</div>
       </div>
 
       <div class="result-body">
-        <!-- QR Code -->
         <div>
           <div class="qr-wrapper">
+            <div class="qr-skeleton" id="qr-skeleton" aria-label="Loading QR code"></div>
             <div id="qrcode"></div>
           </div>
         </div>
 
-        <!-- Details -->
         <div class="result-details">
-          <div class="stats-grid">
-            <div class="stat-card">
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-card" id="stat-card-scans">
               <div class="stat-value" id="stat-scans">0</div>
               <div class="stat-label">QR Scans</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" id="stat-card-expiry">
               <div class="stat-value" id="stat-expiry">—</div>
               <div class="stat-label">Expires In</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" id="stat-card-size">
               <div class="stat-value" id="stat-size">—</div>
               <div class="stat-label">File Size</div>
             </div>
           </div>
 
           <div class="link-box">
-            <input type="text" class="link-input" id="link-input" readonly />
-            <button class="btn-copy" id="btn-copy">
+            <input type="text" class="link-input" id="link-input" readonly aria-label="Short link" />
+            <button class="btn-copy" id="btn-copy" aria-label="Copy link">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               Copy
             </button>
           </div>
 
           <div class="action-row">
-            <button class="btn-action btn-primary" id="btn-download">
+            <button class="btn-action btn-primary" id="btn-download" aria-label="Download QR code">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download QR
             </button>
-            <button class="btn-action btn-secondary" id="btn-open-file">
+            <button class="btn-action btn-secondary" id="btn-open-file" aria-label="Open file">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               Open File
             </button>
           </div>
 
-          <div class="expiry-warning" id="expiry-warning" style="display:none">
+          <div class="expiry-warning" id="expiry-warning" style="display:none" role="alert">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span id="expiry-text">This file expires soon — download the QR to keep access</span>
+          </div>
+
+          <div class="expired-overlay" id="expired-overlay" role="alert">
+            Link expired — upload a new file to get a fresh QR code
           </div>
 
           <button class="btn-upload-another" id="btn-upload-another">
@@ -962,64 +950,104 @@
   </footer>
 
   <script>
-    let selectedFile = null;
-    let selectedColor = '#4F46E5';
-    let selectedExpiry = '7d';
-    let shortUrl = '';
-    let expiresAtTs = null; // unix ms
-    let countdownInterval = null;
+    // ── State ────────────────────────────────────────────────────────────
+    let selectedFile    = null;
+    let selectedColor   = '#4F46E5';
+    let selectedExpiry  = '7d';
+    let shortUrl        = '';
+    let expiresAtMs     = null;   // epoch ms or null (permanent)
+    let countdownTimer  = null;
 
-    // DOM refs
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const fileSelected = document.getElementById('file-selected');
-    const selectedFileName = document.getElementById('selected-file-name');
-    const selectedFileSize = document.getElementById('selected-file-size');
-    const btnRemove = document.getElementById('btn-remove-file');
-    const btnGenerate = document.getElementById('btn-generate');
-    const uploadCard = document.getElementById('upload-card');
-    const resultCard = document.getElementById('result-card');
+    // ── DOM refs ─────────────────────────────────────────────────────────
+    const dropZone        = document.getElementById('drop-zone');
+    const dropIcon        = document.getElementById('drop-icon');
+    const dropSvg         = document.getElementById('drop-svg');
+    const fileInput       = document.getElementById('file-input');
+    const fileSelected    = document.getElementById('file-selected');
+    const selName         = document.getElementById('selected-file-name');
+    const selSize         = document.getElementById('selected-file-size');
+    const btnRemove       = document.getElementById('btn-remove-file');
+    const btnGenerate     = document.getElementById('btn-generate');
+    const uploadCard      = document.getElementById('upload-card');
+    const resultCard      = document.getElementById('result-card');
     const customizeToggle = document.getElementById('customize-toggle');
-    const customizeBody = document.getElementById('customize-body');
+    const customizeBody   = document.getElementById('customize-body');
+    const progressWrap    = document.getElementById('progress-wrap');
+    const progressBar     = document.getElementById('progress-bar');
+    const qrSkeleton      = document.getElementById('qr-skeleton');
 
-    // Drop zone interactions
+    // ── Utility ──────────────────────────────────────────────────────────
+    function formatBytes(b) {
+      if (b < 1024)        return b + ' B';
+      if (b < 1048576)     return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(1) + ' MB';
+    }
+
+    function formatCountdown(ms) {
+      if (ms <= 0) return 'Expired';
+      const s = Math.floor(ms / 1000);
+      const d = Math.floor(s / 86400);
+      const h = Math.floor((s % 86400) / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (d >= 1)  return `${d}d ${h}h`;
+      if (h >= 1)  return `${h}h ${m}m`;
+      if (m >= 1)  return `${m}m ${sec}s`;
+      return `${sec}s`;
+    }
+
+    function animateCountUp(el, target, ms) {
+      const start = performance.now();
+      (function tick(now) {
+        const t = Math.min((now - start) / ms, 1);
+        el.textContent = Math.round(t * target);
+        if (t < 1) requestAnimationFrame(tick);
+      })(start);
+    }
+
+    function setProgress(pct) {
+      progressBar.style.width = pct + '%';
+      progressWrap.classList.toggle('active', pct > 0 && pct < 100);
+      if (pct >= 100) setTimeout(() => { progressWrap.classList.remove('active'); progressBar.style.width = '0%'; }, 400);
+    }
+
+    // ── Drop zone interactions ────────────────────────────────────────────
     dropZone.addEventListener('click', e => {
-      if (e.target.closest('.btn-choose') || e.target === dropZone || e.target.closest('.drop-zone')) {
-        fileInput.click();
-      }
+      if (e.target.classList.contains('btn-choose') || e.target === dropZone || !e.target.closest('button')) fileInput.click();
     });
-    document.querySelector('.btn-choose').addEventListener('click', e => {
-      e.stopPropagation();
-      fileInput.click();
-    });
-    dropZone.addEventListener('dragover', e => {
-      e.preventDefault();
-      dropZone.classList.add('drag-over');
-    });
-    dropZone.addEventListener('dragleave', e => {
-      if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over');
-    });
+    document.querySelector('.btn-choose').addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+    dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', e => { if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over'); });
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
       const f = e.dataTransfer.files[0];
-      if (f) setFile(f);
+      if (f) acceptFile(f);
     });
-    fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) acceptFile(e.target.files[0]); });
 
-    function formatBytes(b) {
-      if (b < 1024) return b + ' B';
-      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
-      return (b / (1024 * 1024)).toFixed(1) + ' MB';
+    function acceptFile(f) {
+      // Brief green flash + checkmark
+      dropZone.classList.add('accepted');
+      dropIcon.classList.add('accepted-icon');
+      dropSvg.innerHTML = '<polyline points="20 6 9 17 4 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      setTimeout(() => {
+        dropZone.classList.remove('accepted');
+        dropIcon.classList.remove('accepted-icon');
+        dropSvg.innerHTML = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>';
+        setFile(f);
+      }, 500);
     }
 
     function setFile(f) {
       selectedFile = f;
-      selectedFileName.textContent = f.name;
-      selectedFileSize.textContent = formatBytes(f.size);
+      selName.textContent = f.name;
+      selSize.textContent = formatBytes(f.size);
       fileSelected.classList.add('show');
       dropZone.style.display = 'none';
       btnGenerate.disabled = false;
+      btnGenerate.removeAttribute('aria-disabled');
     }
 
     function clearFile() {
@@ -1028,17 +1056,19 @@
       fileSelected.classList.remove('show');
       dropZone.style.display = '';
       btnGenerate.disabled = true;
+      btnGenerate.setAttribute('aria-disabled', 'true');
     }
 
     btnRemove.addEventListener('click', clearFile);
 
-    // Customize toggle
+    // ── Customize panel ───────────────────────────────────────────────────
     customizeToggle.addEventListener('click', () => {
-      const isOpen = customizeBody.classList.toggle('open');
-      customizeToggle.classList.toggle('open', isOpen);
+      const open = customizeBody.classList.toggle('open');
+      customizeToggle.classList.toggle('open', open);
+      customizeToggle.setAttribute('aria-expanded', open);
+      customizeBody.setAttribute('aria-hidden', !open);
     });
 
-    // Expiry buttons
     document.querySelectorAll('.expiry-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.expiry-btn').forEach(b => b.classList.remove('active'));
@@ -1047,186 +1077,221 @@
       });
     });
 
-    // Color swatches
     document.querySelectorAll('.color-swatch').forEach(swatch => {
-      swatch.addEventListener('click', () => {
-        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-        swatch.classList.add('active');
-        selectedColor = swatch.dataset.color;
-      });
+      swatch.addEventListener('click', () => selectSwatch(swatch));
+      swatch.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSwatch(swatch); } });
     });
+    function selectSwatch(swatch) {
+      document.querySelectorAll('.color-swatch').forEach(s => { s.classList.remove('active'); s.setAttribute('aria-checked','false'); });
+      swatch.classList.add('active');
+      swatch.setAttribute('aria-checked','true');
+      selectedColor = swatch.dataset.color;
+    }
 
-    // Generate
+    // ── Upload ────────────────────────────────────────────────────────────
     btnGenerate.addEventListener('click', async () => {
       if (!selectedFile) return;
-      const file = selectedFile;
 
       btnGenerate.innerHTML = '<div class="spinner"></div> Uploading…';
       btnGenerate.disabled = true;
 
+      // Show skeleton while uploading + processing
+      qrSkeleton.classList.add('show');
+      document.getElementById('qrcode').innerHTML = '';
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('expiry', selectedExpiry);
+      formData.append('qrDark', selectedColor);
+      formData.append('qrLight', '#ffffff');
+
       try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('expiry', selectedExpiry);
-        formData.append('qrDark', selectedColor);
-        formData.append('qrLight', '#ffffff');
-
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!res.ok) throw new Error('Upload failed');
-        const data = await res.json();
-
-        shortUrl = data.shortUrl || data.trackUrl;
-        expiresAtTs = data.expiresAt ? new Date(data.expiresAt).getTime() : null;
-        showResult(file, data);
+        // Use XHR for real upload progress
+        const data = await xhrUpload('/api/upload', formData);
+        shortUrl   = data.shortUrl;
+        expiresAtMs = data.expiresAt ? new Date(data.expiresAt).getTime() : null;
+        showResult(selectedFile, data);
       } catch (err) {
-        alert('Upload failed. Please try again.');
+        qrSkeleton.classList.remove('show');
+        alert(err.message || 'Upload failed. Please try again.');
         resetGenerateBtn();
         btnGenerate.disabled = false;
       }
     });
 
+    function xhrUpload(url, formData) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url);
+
+        xhr.upload.addEventListener('progress', e => {
+          if (e.lengthComputable) setProgress(Math.round(e.loaded / e.total * 90));
+        });
+
+        xhr.addEventListener('load', () => {
+          setProgress(100);
+          try {
+            const d = JSON.parse(xhr.responseText);
+            if (!d.success) reject(new Error(d.error || 'Upload failed'));
+            else resolve(d);
+          } catch { reject(new Error('Invalid server response')); }
+        });
+        xhr.addEventListener('error', () => reject(new Error('Network error')));
+        xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+        xhr.send(formData);
+      });
+    }
+
     function resetGenerateBtn() {
       btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
     }
 
-    function formatCountdown(ms) {
-      if (ms <= 0) return 'Expired';
-      const totalSec = Math.floor(ms / 1000);
-      const days = Math.floor(totalSec / 86400);
-      const hrs = Math.floor((totalSec % 86400) / 3600);
-      const mins = Math.floor((totalSec % 3600) / 60);
-      if (days >= 1) return `${days}d ${hrs}h`;
-      if (hrs >= 1) return `${hrs}h ${mins}m`;
-      return `${mins}m`;
-    }
-
-    function startCountdown() {
-      if (countdownInterval) clearInterval(countdownInterval);
-      if (!expiresAtTs) {
-        document.getElementById('stat-expiry').textContent = '∞';
-        return;
-      }
-      function tick() {
-        const remaining = expiresAtTs - Date.now();
-        document.getElementById('stat-expiry').textContent = formatCountdown(remaining);
-        if (remaining <= 0) clearInterval(countdownInterval);
-      }
-      tick();
-      countdownInterval = setInterval(tick, 30_000);
-    }
-
-    function animateCountUp(el, target, duration) {
-      const start = performance.now();
-      const from = 0;
-      function step(now) {
-        const t = Math.min((now - start) / duration, 1);
-        el.textContent = Math.round(from + t * target);
-        if (t < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    }
-
-    function launchConfetti() {
-      const container = document.getElementById('confetti-container');
-      const colors = ['#4F46E5','#7C3AED','#10B981','#F59E0B','#EC4899','#0EA5E9'];
-      const pieces = 60;
-      for (let i = 0; i < pieces; i++) {
-        const el = document.createElement('div');
-        el.className = 'confetti-piece';
-        el.style.left = Math.random() * 100 + 'vw';
-        el.style.background = colors[Math.floor(Math.random() * colors.length)];
-        el.style.width = (Math.random() * 8 + 6) + 'px';
-        el.style.height = (Math.random() * 6 + 4) + 'px';
-        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-        el.style.animationDuration = (Math.random() * 1.8 + 1.2) + 's';
-        el.style.animationDelay = (Math.random() * 0.6) + 's';
-        container.appendChild(el);
-        el.addEventListener('animationend', () => el.remove());
-      }
-    }
-
+    // ── Show result ───────────────────────────────────────────────────────
     function showResult(file, data) {
-      // Populate header
       document.getElementById('result-file-name').textContent = file.name;
       document.getElementById('result-file-meta').textContent = formatBytes(file.size);
 
-      // Stats
-      animateCountUp(document.getElementById('stat-scans'), data.scanCount ?? 0, 600);
-      document.getElementById('stat-size').textContent = formatBytes(file.size);
-
-      // Start countdown
-      startCountdown();
-
-      // Expiry warning for ≤ 24h
-      if (expiresAtTs && (expiresAtTs - Date.now()) <= 86_400_000) {
-        document.getElementById('expiry-warning').style.display = 'flex';
-        const expDate = new Date(expiresAtTs);
-        document.getElementById('expiry-text').textContent =
-          `This file expires on ${expDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} — download the QR to keep access`;
-      }
-
-      // Link
-      document.getElementById('link-input').value = shortUrl;
-
-      // QR Code
-      document.getElementById('qrcode').innerHTML = '';
-      new QRCode(document.getElementById('qrcode'), {
-        text: shortUrl,
-        width: 200,
-        height: 200,
-        colorDark: selectedColor,
-        colorLight: '#FFFFFF',
-        correctLevel: QRCode.CorrectLevel.H
+      // Animate stats in with stagger
+      const statCards = document.querySelectorAll('.stat-card');
+      statCards.forEach((card, i) => {
+        card.style.transitionDelay = `${i * 100}ms`;
+        setTimeout(() => card.classList.add('visible'), 50 + i * 100);
       });
 
-      // Show result, hide upload
+      animateCountUp(document.getElementById('stat-scans'), data.scanCount ?? 0, 700);
+      document.getElementById('stat-size').textContent = formatBytes(file.size);
+
+      // Build QR code from server-returned data URL
+      qrSkeleton.classList.remove('show');
+      const qrImg = new Image();
+      qrImg.src = data.qrCode;
+      qrImg.style.cssText = 'border-radius:8px;display:block;width:200px;height:200px;';
+      qrImg.alt = 'QR code';
+      document.getElementById('qrcode').appendChild(qrImg);
+
+      // Short link
+      document.getElementById('link-input').value = shortUrl;
+
+      // Expiry card with tooltip
+      const expiryCard = document.getElementById('stat-card-expiry');
+      if (expiresAtMs) {
+        const isoStr = new Date(expiresAtMs).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
+        expiryCard.setAttribute('data-tooltip', `Expires ${isoStr}`);
+      }
+
+      // Expiry warning for ≤24h
+      if (expiresAtMs && (expiresAtMs - Date.now()) <= 86_400_000) {
+        document.getElementById('expiry-warning').style.display = 'flex';
+        const d = new Date(expiresAtMs);
+        document.getElementById('expiry-text').textContent =
+          `This file expires ${d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} — download the QR to keep access`;
+      }
+
+      // Hide upload, show result
       uploadCard.style.display = 'none';
       resultCard.classList.add('show');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Celebrate!
-      setTimeout(launchConfetti, 150);
+      // Start live countdown
+      startCountdown();
+
+      // Confetti!
+      setTimeout(launchConfetti, 180);
     }
 
-    // Copy link
+    // ── Countdown ─────────────────────────────────────────────────────────
+    function startCountdown() {
+      if (countdownTimer) clearInterval(countdownTimer);
+      if (!expiresAtMs) {
+        document.getElementById('stat-expiry').textContent = '∞';
+        return;
+      }
+      function tick() {
+        const rem = expiresAtMs - Date.now();
+        const el  = document.getElementById('stat-expiry');
+        const card = document.getElementById('stat-card-expiry');
+
+        if (rem <= 0) {
+          el.textContent = 'Expired';
+          clearInterval(countdownTimer);
+          resultCard.classList.add('expired-state');
+          document.getElementById('expired-overlay').classList.add('show');
+          document.getElementById('expiry-warning').style.display = 'none';
+          card.classList.add('expiry-crit');
+          return;
+        }
+
+        // Urgency indicators
+        const oneHour = 3_600_000;
+        const tenMin  = 600_000;
+        card.classList.toggle('expiry-warn', rem <= oneHour && rem > tenMin);
+        card.classList.toggle('expiry-crit', rem <= tenMin);
+
+        const dot = rem <= tenMin ? '<span class="expiry-dot" aria-hidden="true"></span>' : '';
+        el.innerHTML = dot + formatCountdown(rem);
+      }
+      tick();
+      countdownTimer = setInterval(tick, 1000);
+    }
+
+    // ── Confetti ──────────────────────────────────────────────────────────
+    function launchConfetti() {
+      if (typeof confetti !== 'function') return;
+      const colors = ['#4F46E5','#7C3AED','#10B981','#F59E0B','#EC4899','#0EA5E9'];
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.4 }, colors });
+      setTimeout(() => confetti({ particleCount: 40, spread: 100, origin: { y: 0.45 }, colors }), 200);
+    }
+
+    // ── Copy link ─────────────────────────────────────────────────────────
     document.getElementById('btn-copy').addEventListener('click', () => {
       const url = document.getElementById('link-input').value;
       navigator.clipboard.writeText(url).then(() => {
         const btn = document.getElementById('btn-copy');
         btn.classList.add('copied');
         btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+        // Scale-bounce
+        btn.style.transform = 'scale(1.12)';
+        setTimeout(() => { btn.style.transform = ''; }, 200);
         setTimeout(() => {
           btn.classList.remove('copied');
           btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
-        }, 2000);
+        }, 2200);
       });
     });
 
-    // Download QR
+    // ── Download QR ───────────────────────────────────────────────────────
     document.getElementById('btn-download').addEventListener('click', () => {
+      const img = document.querySelector('#qrcode img');
       const canvas = document.querySelector('#qrcode canvas');
-      if (!canvas) return;
       const a = document.createElement('a');
-      a.download = 'pictoqr-code.png';
-      a.href = canvas.toDataURL('image/png');
+      a.download = 'pictoqr.png';
+      if (canvas)    a.href = canvas.toDataURL('image/png');
+      else if (img)  a.href = img.src;
+      else return;
       a.click();
     });
 
-    // Open file
+    // ── Open file ─────────────────────────────────────────────────────────
     document.getElementById('btn-open-file').addEventListener('click', () => {
-      if (shortUrl) window.open(shortUrl, '_blank');
+      if (shortUrl) window.open(shortUrl, '_blank', 'noopener');
     });
 
-    // Upload another
+    // ── Upload another ────────────────────────────────────────────────────
     document.getElementById('btn-upload-another').addEventListener('click', () => {
-      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-      resultCard.classList.remove('show');
+      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+      resultCard.classList.remove('show', 'expired-state');
       uploadCard.style.display = '';
       clearFile();
       document.getElementById('qrcode').innerHTML = '';
+      qrSkeleton.classList.remove('show');
       document.getElementById('expiry-warning').style.display = 'none';
+      document.getElementById('expired-overlay').classList.remove('show');
+      document.querySelectorAll('.stat-card').forEach(c => {
+        c.classList.remove('visible','expiry-warn','expiry-crit');
+        c.style.transitionDelay = '';
+      });
       shortUrl = '';
-      expiresAtTs = null;
+      expiresAtMs = null;
       resetGenerateBtn();
     });
   </script>

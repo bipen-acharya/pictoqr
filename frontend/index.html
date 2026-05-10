@@ -8,9 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
+    /* ══════════════════════════════════════════════════════════════
+       RESET & TOKENS
+    ══════════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -34,14 +36,15 @@
       --radius-sm:    10px;
       --shadow:       0 4px 24px rgba(79,70,229,0.07), 0 1px 4px rgba(0,0,0,0.04);
       --shadow-lg:    0 8px 32px rgba(79,70,229,0.12), 0 2px 8px rgba(0,0,0,0.05);
-      --shadow-xl:    0 20px 60px rgba(79,70,229,0.15), 0 8px 24px rgba(0,0,0,0.08);
       --ease-spring:  cubic-bezier(0.34,1.56,0.64,1);
       --ease-out:     cubic-bezier(0.16,1,0.3,1);
     }
 
     html { scroll-behavior: smooth; }
 
-    /* ── Animated gradient background ────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       BACKGROUND — 3 drifting radial orbs + noise
+    ══════════════════════════════════════════════════════════════ */
     body {
       font-family: 'DM Sans', sans-serif;
       background: var(--surface-2);
@@ -51,332 +54,334 @@
       position: relative;
       overflow-x: hidden;
     }
-
-    /* Slow-drifting gradient orbs */
+    /* Orb 1 — top-right indigo */
     body::before {
       content: '';
       position: fixed;
-      top: -30vh;
-      right: -20vw;
-      width: 80vw;
-      height: 80vw;
-      max-width: 700px;
-      max-height: 700px;
-      background: radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 65%);
-      pointer-events: none;
-      z-index: 0;
-      animation: driftA 18s ease-in-out infinite alternate;
+      top: -30vh; right: -20vw;
+      width: clamp(400px,80vw,700px);
+      height: clamp(400px,80vw,700px);
+      background: radial-gradient(circle, rgba(79,70,229,0.09) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+      animation: driftA 20s ease-in-out infinite alternate;
     }
+    /* Orb 2 — bottom-left violet */
     body::after {
       content: '';
       position: fixed;
-      bottom: -20vh;
-      left: -20vw;
-      width: 70vw;
-      height: 70vw;
-      max-width: 600px;
-      max-height: 600px;
-      background: radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 65%);
-      pointer-events: none;
-      z-index: 0;
-      animation: driftB 22s ease-in-out infinite alternate;
+      bottom: -20vh; left: -20vw;
+      width: clamp(300px,70vw,600px);
+      height: clamp(300px,70vw,600px);
+      background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+      animation: driftB 24s ease-in-out infinite alternate;
+    }
+    /* Orb 3 — center-bottom sky, separate element */
+    .orb3 {
+      position: fixed;
+      bottom: -10vh; left: 30%;
+      width: clamp(200px,50vw,500px);
+      height: clamp(200px,50vw,500px);
+      background: radial-gradient(circle, rgba(14,165,233,0.05) 0%, transparent 65%);
+      pointer-events: none; z-index: 0;
+      animation: driftC 16s ease-in-out infinite alternate;
     }
     @keyframes driftA {
       from { transform: translate(0,0) scale(1); }
-      to   { transform: translate(-4vw, 6vh) scale(1.08); }
+      to   { transform: translate(-5vw, 8vh) scale(1.1); }
     }
     @keyframes driftB {
       from { transform: translate(0,0) scale(1); }
-      to   { transform: translate(6vw, -4vh) scale(1.1); }
+      to   { transform: translate(7vw, -5vh) scale(1.12); }
     }
-
-    /* SVG noise texture overlay */
+    @keyframes driftC {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(-8vw, -6vh) scale(1.08); }
+    }
+    /* Noise texture — 4% opacity fractal noise */
     .noise {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.028;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 1; opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
     }
 
-    /* ── Upload progress bar ──────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       PROGRESS BAR
+    ══════════════════════════════════════════════════════════════ */
     .progress-bar-wrap {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      z-index: 9999;
-      opacity: 0;
-      transition: opacity 0.2s;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 3px; z-index: 9999;
+      opacity: 0; transition: opacity 0.2s;
     }
     .progress-bar-wrap.active { opacity: 1; }
     .progress-bar {
       height: 100%;
-      background: linear-gradient(90deg, var(--indigo), var(--violet));
+      background: linear-gradient(90deg, var(--indigo), var(--violet), #0EA5E9);
       width: 0%;
-      transition: width 0.2s ease;
-      box-shadow: 0 0 8px rgba(79,70,229,0.6);
+      transition: width 0.25s ease;
+      box-shadow: 0 0 10px rgba(79,70,229,0.7);
     }
 
-    /* ── NAV ──────────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       NAV
+    ══════════════════════════════════════════════════════════════ */
     nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      position: sticky; top: 0; z-index: 100;
       background: rgba(255,255,255,0.88);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       padding: 0 24px;
     }
     .nav-inner {
-      max-width: 960px;
-      margin: 0 auto;
+      max-width: 960px; margin: 0 auto;
       height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: flex; align-items: center; gap: 10px;
       text-decoration: none;
-      animation: logoScaleIn 0.6s var(--ease-spring) both;
+      animation: logoElastic 0.8s var(--ease-spring) 0.1s both;
     }
-    @keyframes logoScaleIn {
-      from { opacity: 0; transform: scale(0.8); }
-      to   { opacity: 1; transform: scale(1); }
+    @keyframes logoElastic {
+      0%   { opacity: 0; transform: scale(0.5); }
+      60%  { transform: scale(1.08); }
+      100% { opacity: 1; transform: scale(1); }
     }
     .logo-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
+      width: 34px; height: 34px; border-radius: 9px;
       background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.3s var(--ease-spring);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.35s var(--ease-spring);
       box-shadow: 0 3px 10px rgba(79,70,229,0.35);
     }
     .logo:hover .logo-icon { transform: scale(1.12) rotate(-5deg); }
     .logo-icon svg { width: 20px; height: 20px; }
-    .logo-name {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 700;
-      font-size: 18px;
-      color: var(--text-1);
-      letter-spacing: -0.3px;
-    }
+    .logo-name { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 18px; color: var(--text-1); letter-spacing: -0.3px; }
     .logo-name span { color: var(--indigo); }
+
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+
     .nav-badge {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--success);
+      font-size: 12px; font-weight: 500; color: var(--success);
       background: rgba(16,185,129,0.08);
       border: 1px solid rgba(16,185,129,0.18);
-      padding: 4px 10px;
-      border-radius: 100px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      padding: 4px 10px; border-radius: 100px;
+      display: flex; align-items: center; gap: 5px;
+      animation: badgeBounce 0.7s var(--ease-spring) 0.3s both;
+    }
+    @keyframes badgeBounce {
+      0%   { opacity: 0; transform: translateY(-16px) scale(0.85); }
+      65%  { transform: translateY(3px) scale(1.04); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
     }
     .nav-badge::before {
       content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--success);
-      display: inline-block;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success); display: inline-block;
       animation: blink 2s infinite;
     }
-    @keyframes blink {
-      0%,100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.35; transform: scale(0.7); }
-    }
+    @keyframes blink { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.65); } }
 
-    /* ── MAIN ─────────────────────────────────────────────────────────── */
-    main {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 48px 24px 80px;
-      position: relative;
-      z-index: 2;
+    /* Sound toggle */
+    .btn-sound {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--surface-3); border: 1px solid var(--border);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s var(--ease-spring); color: var(--text-3);
     }
+    .btn-sound:hover { background: var(--indigo-light); border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.08); }
+    .btn-sound svg { width: 15px; height: 15px; }
+    .btn-sound.muted { color: var(--text-3); opacity: 0.55; }
 
-    /* ── HERO ─────────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════════════════════════════ */
+    main { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; position: relative; z-index: 2; }
+
+    /* ══════════════════════════════════════════════════════════════
+       HERO — word-by-word stagger + typewriter
+    ══════════════════════════════════════════════════════════════ */
     .hero { text-align: center; margin-bottom: 40px; }
     .hero h1 {
       font-family: 'Outfit', sans-serif;
       font-size: clamp(28px, 5vw, 46px);
-      font-weight: 700;
-      color: var(--text-1);
-      letter-spacing: -1px;
-      line-height: 1.15;
-      margin-bottom: 12px;
-      animation: fadeUpHero 0.6s var(--ease-out) both;
+      font-weight: 700; color: var(--text-1);
+      letter-spacing: -1px; line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    /* Each word slides up independently */
+    .hero h1 .word {
+      display: inline-block;
+      opacity: 0; transform: translateY(22px);
+      animation: wordUp 0.5s var(--ease-out) forwards;
+      animation-delay: calc(var(--wi) * 80ms + 0.05s);
+    }
+    @keyframes wordUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Typewriter line */
+    .hero h1 .typewriter-line {
+      display: block;
+      margin-top: 2px;
     }
     .hero h1 em {
       font-style: normal;
       background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .hero p {
-      font-size: 17px;
-      color: var(--text-2);
-      max-width: 420px;
-      margin: 0 auto;
-      animation: fadeUpHero 0.6s 0.1s var(--ease-out) both;
+    .tw-cursor {
+      display: inline-block;
+      width: 3px; height: 0.85em;
+      background: var(--indigo);
+      margin-left: 2px; vertical-align: middle;
+      border-radius: 1px;
+      animation: cursorBlink 0.9s step-end infinite;
+      opacity: 0; /* shown by JS when typewriter starts */
     }
-    @keyframes fadeUpHero {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes cursorBlink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    .hero p {
+      font-size: 17px; color: var(--text-2); max-width: 440px; margin: 0 auto;
+      opacity: 0; transform: translateY(14px);
+      animation: wordUp 0.6s var(--ease-out) 0.55s both;
     }
 
-    /* ── CARD ─────────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       CARD
+    ══════════════════════════════════════════════════════════════ */
     .card {
       background: var(--surface);
       border-radius: var(--radius);
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       overflow: hidden;
-      animation: fadeUpHero 0.6s 0.18s var(--ease-out) both;
+      transition: box-shadow 0.25s ease, transform 0.25s var(--ease-spring);
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    #upload-card {
+      opacity: 0; transform: translateY(28px);
+      animation: cardSlideUp 0.65s var(--ease-spring) 0.8s both;
+    }
+    @keyframes cardSlideUp {
+      to { opacity: 1; transform: translateY(0); }
     }
     .card-body { padding: 28px; }
 
-    /* ── DROP ZONE ────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       DROP ZONE
+    ══════════════════════════════════════════════════════════════ */
     .drop-zone {
       border: 2px dashed var(--border-2);
       border-radius: var(--radius-sm);
       background: var(--surface-3);
       padding: 40px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition:
-        border-color 0.25s ease,
-        background   0.25s ease,
-        box-shadow   0.25s ease,
-        transform    0.3s var(--ease-spring);
-      position: relative;
+      text-align: center; cursor: pointer;
+      transition: border-color 0.25s ease, background 0.25s ease,
+                  box-shadow 0.25s ease, transform 0.3s var(--ease-spring);
+      position: relative; overflow: hidden;
     }
-    .drop-zone:hover {
-      border-color: var(--indigo);
-      background: var(--indigo-light);
-    }
+    .drop-zone:hover { border-color: var(--indigo); background: var(--indigo-light); }
+    /* Drag-over state */
     .drop-zone.drag-over {
       border-color: var(--indigo);
-      background:   var(--indigo-light);
-      transform:    scale(1.015);
-      box-shadow:   0 0 0 5px rgba(79,70,229,0.13), 0 0 32px rgba(79,70,229,0.18);
-      animation:    dropPulse 1.1s ease-in-out infinite;
+      background: var(--indigo-light);
+      transform: scale(1.02);
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.12), 0 0 36px rgba(79,70,229,0.2);
+      animation: borderPulse 1s ease-in-out infinite;
     }
-    @keyframes dropPulse {
-      0%,100% { box-shadow: 0 0 0 5px rgba(79,70,229,0.13), 0 0 32px rgba(79,70,229,0.18); }
-      50%      { box-shadow: 0 0 0 8px rgba(79,70,229,0.22), 0 0 48px rgba(79,70,229,0.28); }
+    @keyframes borderPulse {
+      0%,100% { box-shadow: 0 0 0 4px rgba(79,70,229,0.12), 0 0 28px rgba(79,70,229,0.18); }
+      50%      { box-shadow: 0 0 0 7px rgba(79,70,229,0.2),  0 0 50px rgba(79,70,229,0.28); }
     }
-    .drop-zone.accepted {
+    /* Accepted: green flash + scale down then spring */
+    .drop-zone.drop-accepted {
       border-color: var(--success);
-      background: rgba(16,185,129,0.05);
-      animation: acceptedFlash 0.4s var(--ease-out) forwards;
+      animation: acceptBounce 0.5s var(--ease-spring) both;
     }
-    @keyframes acceptedFlash {
-      0%   { background: rgba(16,185,129,0.2); }
-      100% { background: rgba(16,185,129,0.05); }
+    @keyframes acceptBounce {
+      0%   { transform: scale(0.97); background: rgba(16,185,129,0.18); }
+      60%  { transform: scale(1.02); }
+      100% { transform: scale(1); background: rgba(16,185,129,0.04); }
     }
     .drop-zone input { display: none; }
 
-    /* Floating idle animation on icon */
+    /* Upload icon — slow float */
     .drop-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 52px; height: 52px; border-radius: 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
       margin: 0 auto 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      animation: iconFloat 3.5s ease-in-out infinite;
-      transition: border-color 0.25s, box-shadow 0.25s, transform 0.3s var(--ease-spring);
+      animation: iconFloat 2.4s ease-in-out infinite;
+      transition: border-color 0.25s, box-shadow 0.25s, transform 0.3s var(--ease-spring), background 0.25s;
     }
     @keyframes iconFloat {
       0%,100% { transform: translateY(0); }
-      50%      { transform: translateY(-5px); }
+      50%      { transform: translateY(-6px); }
     }
-    .drop-zone.drag-over .drop-icon,
-    .drop-zone:hover .drop-icon {
-      border-color: var(--indigo-mid);
-      box-shadow: 0 6px 20px rgba(79,70,229,0.2);
+    /* Drag-over: icon glows + scales 1.3x, stops float */
+    .drop-zone.drag-over .drop-icon {
       animation: none;
-      transform: translateY(-4px) scale(1.08);
+      transform: scale(1.3) translateY(-2px);
+      border-color: var(--indigo);
+      background: var(--indigo-light);
+      box-shadow: 0 0 0 6px rgba(79,70,229,0.15), 0 8px 24px rgba(79,70,229,0.25);
     }
-    /* Checkmark icon shown after accepted */
-    .drop-icon.accepted-icon {
+    .drop-zone:not(.drag-over):hover .drop-icon {
+      animation: none;
+      transform: translateY(-4px) scale(1.06);
+      border-color: var(--indigo-mid);
+      box-shadow: 0 6px 20px rgba(79,70,229,0.18);
+    }
+    /* Accepted icon state */
+    .drop-icon.check-icon {
       background: var(--success);
       border-color: var(--success);
-      animation: checkPop 0.4s var(--ease-spring);
+      animation: checkPop 0.45s var(--ease-spring) both;
+      box-shadow: 0 0 0 6px rgba(16,185,129,0.15), 0 8px 20px rgba(16,185,129,0.2);
     }
     @keyframes checkPop {
-      0%   { transform: scale(0.6); }
-      100% { transform: scale(1); }
+      0% { transform: scale(0.5); } 70% { transform: scale(1.15); } 100% { transform: scale(1); }
     }
     .drop-icon svg { width: 24px; height: 24px; color: var(--indigo); transition: color 0.2s; }
-    .drop-icon.accepted-icon svg { color: white; }
+    .drop-icon.check-icon svg { color: white; }
+    /* Checkmark draw animation */
+    .check-path {
+      stroke-dasharray: 30;
+      stroke-dashoffset: 30;
+      animation: drawCheck 0.35s ease forwards 0.05s;
+    }
+    @keyframes drawCheck { to { stroke-dashoffset: 0; } }
 
-    .drop-zone h3 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-1);
-      margin-bottom: 4px;
-    }
-    .drop-zone p {
-      font-size: 13px;
-      color: var(--text-3);
-      margin-bottom: 16px;
-    }
+    .drop-zone h3 { font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
+    .drop-zone p { font-size: 13px; color: var(--text-3); margin-bottom: 16px; }
+    #drop-subtext { transition: opacity 0.2s; }
     .btn-choose {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--indigo);
-      background: var(--indigo-light);
-      border: 1.5px solid var(--indigo-mid);
-      padding: 8px 20px;
-      border-radius: 100px;
-      cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      color: var(--indigo); background: var(--indigo-light);
+      border: 1.5px solid var(--indigo-mid); padding: 8px 20px;
+      border-radius: 100px; cursor: pointer;
       transition: all 0.25s var(--ease-spring);
     }
-    .btn-choose:hover {
-      background: var(--indigo);
-      border-color: var(--indigo);
-      color: white;
-      transform: scale(1.05);
-    }
-    .btn-choose:active { transform: scale(0.97); }
+    .btn-choose:hover { background: var(--indigo); border-color: var(--indigo); color: white; transform: scale(1.05); }
+    .btn-choose:active { transform: scale(0.96); }
     .drop-hint { margin-top: 12px; font-size: 12px; color: var(--text-3); }
 
-    /* ── FILE SELECTED STATE ──────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       FILE SELECTED
+    ══════════════════════════════════════════════════════════════ */
     .file-selected {
-      display: none;
-      align-items: center;
-      gap: 14px;
+      display: none; align-items: center; gap: 14px;
       padding: 14px 16px;
-      background: var(--indigo-light);
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--indigo-mid);
-      margin-bottom: 20px;
-      animation: fadeUpHero 0.3s var(--ease-out);
+      background: var(--indigo-light); border-radius: var(--radius-sm);
+      border: 1px solid var(--indigo-mid); margin-bottom: 20px;
     }
-    .file-selected.show { display: flex; }
+    .file-selected.show { display: flex; animation: wordUp 0.35s var(--ease-out); }
     .file-thumb {
-      width: 40px; height: 40px;
-      border-radius: 10px;
+      width: 40px; height: 40px; border-radius: 10px;
       background: linear-gradient(135deg, var(--indigo), var(--violet));
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
@@ -390,253 +395,274 @@
     }
     .btn-remove:hover { color: var(--danger); background: rgba(239,68,68,0.08); }
 
-    /* ── CUSTOMIZE ────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       CUSTOMIZE
+    ══════════════════════════════════════════════════════════════ */
     .customize-section { margin-top: 20px; }
     .customize-toggle {
-      width: 100%;
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 12px 16px;
-      cursor: pointer;
-      font-size: 14px; font-weight: 500; color: var(--text-2);
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-2);
       transition: all 0.2s ease;
     }
     .customize-toggle:hover { border-color: var(--indigo-mid); color: var(--indigo); }
     .customize-toggle svg { width: 16px; height: 16px; transition: transform 0.3s ease; }
     .customize-toggle.open svg { transform: rotate(180deg); }
     .customize-toggle-left { display: flex; align-items: center; gap: 8px; }
-    .customize-body { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease; opacity: 0; }
+    .customize-body { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s; opacity: 0; }
     .customize-body.open { max-height: 360px; opacity: 1; }
     .customize-inner { padding: 20px 4px 4px; }
     .option-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
 
-    /* ── EXPIRY BUTTONS ───────────────────────────────────────────────── */
     .expiry-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
     .expiry-btn {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px; font-weight: 500;
-      padding: 7px 16px;
-      border-radius: 100px;
-      border: 1.5px solid var(--border-2);
-      background: var(--surface);
-      color: var(--text-2);
-      cursor: pointer;
-      transition: all 0.22s var(--ease-spring);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      padding: 7px 16px; border-radius: 100px;
+      border: 1.5px solid var(--border-2); background: var(--surface); color: var(--text-2);
+      cursor: pointer; transition: all 0.22s var(--ease-spring);
     }
     .expiry-btn:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.04); }
-    .expiry-btn:active { transform: scale(0.97); }
+    .expiry-btn:active { transform: scale(0.96); }
     .expiry-btn.active {
       background: linear-gradient(135deg, var(--indigo), var(--violet));
-      border-color: transparent;
-      color: white;
-      box-shadow: 0 3px 12px rgba(79,70,229,0.32);
-      transform: scale(1.05);
+      border-color: transparent; color: white;
+      box-shadow: 0 3px 12px rgba(79,70,229,0.32); transform: scale(1.05);
     }
 
-    /* ── COLOR SWATCHES ───────────────────────────────────────────────── */
     .color-group { display: flex; gap: 10px; }
     .color-swatch {
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      border: 2.5px solid transparent;
-      cursor: pointer;
+      width: 30px; height: 30px; border-radius: 50%;
+      border: 2.5px solid transparent; cursor: pointer;
       transition: all 0.22s var(--ease-spring);
     }
     .color-swatch:hover { transform: scale(1.22); }
     .color-swatch:active { transform: scale(0.95); }
-    .color-swatch.active {
-      border-color: var(--text-1);
-      box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px rgba(0,0,0,0.25);
-      transform: scale(1.15);
-    }
+    .color-swatch.active { border-color: var(--text-1); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px rgba(0,0,0,0.25); transform: scale(1.15); }
 
-    /* ── DIVIDER ──────────────────────────────────────────────────────── */
     .divider { height: 1px; background: var(--border); margin: 24px 0; }
 
-    /* ── GENERATE BUTTON ──────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       GENERATE BUTTON
+    ══════════════════════════════════════════════════════════════ */
     .btn-generate {
-      width: 100%;
-      font-family: 'Outfit', sans-serif;
-      font-size: 16px; font-weight: 600;
-      color: white;
-      background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
-      border: none;
-      padding: 15px 24px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease, opacity 0.2s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      letter-spacing: -0.2px;
+      width: 100%; font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600;
+      color: white; background: linear-gradient(135deg, var(--indigo) 0%, var(--violet) 100%);
+      border: none; padding: 15px 24px; border-radius: var(--radius-sm);
+      cursor: pointer; letter-spacing: -0.2px;
       box-shadow: 0 4px 16px rgba(79,70,229,0.28);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       position: relative; overflow: hidden;
+      transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease, opacity 0.2s;
     }
-    .btn-generate::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
-      transform: translateX(-100%);
-      transition: transform 0s;
-    }
-    .btn-generate:hover:not(:disabled) {
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 8px 28px rgba(79,70,229,0.42);
-    }
-    .btn-generate:active:not(:disabled) { transform: scale(0.97); }
+    .btn-generate:hover:not(:disabled) { transform: translateY(-2px) scale(1.01); box-shadow: 0 8px 28px rgba(79,70,229,0.42); }
+    .btn-generate:active:not(:disabled) { transform: scale(0.96); }
     .btn-generate:disabled { opacity: 0.42; cursor: not-allowed; transform: none; box-shadow: none; }
     .btn-generate svg { width: 18px; height: 18px; }
 
-    /* ── SPINNER ──────────────────────────────────────────────────────── */
     .spinner {
       width: 18px; height: 18px;
-      border: 2.5px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.65s linear infinite;
-      flex-shrink: 0;
+      border: 2.5px solid rgba(255,255,255,0.3); border-top-color: white;
+      border-radius: 50%; animation: spin 0.65s linear infinite; flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── QR SKELETON ──────────────────────────────────────────────────── */
-    .qr-skeleton {
-      width: 200px; height: 200px;
-      border-radius: 8px;
-      background: linear-gradient(90deg, var(--surface-3) 25%, #e8e6f6 50%, var(--surface-3) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.3s infinite;
-      display: none;
-    }
-    .qr-skeleton.show { display: block; }
-    @keyframes shimmer {
-      0%   { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ── RESULT CARD ──────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       RESULT CARD ENTRANCE
+    ══════════════════════════════════════════════════════════════ */
     .result-card { display: none; }
     .result-card.show {
       display: block;
       animation: resultReveal 0.55s var(--ease-out) both;
     }
     @keyframes resultReveal {
-      from { opacity: 0; transform: scale(0.95) translateY(14px); }
+      from { opacity: 0; transform: scale(0.94) translateY(16px); }
       to   { opacity: 1; transform: scale(1) translateY(0); }
     }
-    .result-card.expired-state { filter: grayscale(0.6); opacity: 0.7; pointer-events: none; }
+    .result-card.expired-state { transition: filter 1s ease, opacity 1s ease; filter: grayscale(1); opacity: 0.65; pointer-events: none; }
 
     .result-header {
-      padding: 20px 28px;
-      border-bottom: 1px solid var(--border);
+      padding: 20px 28px; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; gap: 12px;
     }
     .result-file-icon {
-      width: 44px; height: 44px;
-      border-radius: 12px;
-      background: var(--indigo-light);
-      border: 1px solid var(--indigo-mid);
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--indigo-light); border: 1px solid var(--indigo-mid);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .result-file-icon svg { width: 22px; height: 22px; color: var(--indigo); }
     .result-file-info .file-name { font-size: 15px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
     .result-file-info .file-meta { font-size: 13px; color: var(--text-3); }
+
+    /* Badge slides in from right with overshoot */
     .result-badge {
       margin-left: auto;
       font-size: 12px; font-weight: 600; color: var(--success);
-      background: rgba(16,185,129,0.08);
-      border: 1px solid rgba(16,185,129,0.2);
-      padding: 5px 12px;
-      border-radius: 100px;
+      background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+      padding: 5px 12px; border-radius: 100px;
       display: flex; align-items: center; gap: 5px; white-space: nowrap;
+      opacity: 0; transform: translateX(20px);
+    }
+    .result-badge.badge-in {
+      animation: badgeSlideIn 0.55s var(--ease-spring) 0.25s both;
+    }
+    @keyframes badgeSlideIn {
+      to { opacity: 1; transform: translateX(0); }
     }
     .result-badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%; background: var(--success); display: inline-block;
-      animation: blink 2s infinite;
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--success); display: inline-block;
+    }
+    /* Blinks 3 times then holds */
+    .result-badge.badge-in::before {
+      animation: badgeDot3 1.2s ease 0.4s both;
+    }
+    @keyframes badgeDot3 {
+      0%,20%,40%   { opacity: 1; }
+      10%,30%      { opacity: 0.1; }
+      60%,100%     { opacity: 1; animation-timing-function: step-end; }
     }
 
     .result-body {
       padding: 32px 28px;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 32px;
-      align-items: start;
+      display: grid; grid-template-columns: auto 1fr;
+      gap: 32px; align-items: start;
     }
 
-    /* ── QR WRAPPER ───────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       QR WRAPPER + SCANLINES
+    ══════════════════════════════════════════════════════════════ */
     .qr-wrapper {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
+      background: white; border-radius: 18px; padding: 18px;
       border: 1px solid var(--border);
-      box-shadow: var(--shadow-lg);
-      display: inline-block;
-      animation: qrPop 0.55s 0.12s var(--ease-spring) both;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
+      display: inline-block; position: relative; overflow: hidden;
+      transition: box-shadow 0.3s ease;
+      animation: qrPop 0.55s 0.1s var(--ease-spring) both;
     }
     @keyframes qrPop {
-      from { opacity: 0; transform: scale(0.78); }
+      from { opacity: 0; transform: scale(0.82); }
       to   { opacity: 1; transform: scale(1); }
     }
-    #qrcode { display: block; min-width: 200px; min-height: 200px; }
-    #qrcode canvas, #qrcode img { border-radius: 8px; display: block; }
-
-    /* ── RESULT DETAILS ───────────────────────────────────────────────── */
-    .result-details { min-width: 0; }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 24px;
+    /* Hover: glow ring */
+    .qr-wrapper:hover {
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.12), 0 8px 28px rgba(79,70,229,0.18);
+      cursor: pointer;
     }
+    /* Scanlines: moving strip top→bottom, low opacity */
+    .qr-wrapper::after {
+      content: '';
+      position: absolute; inset: 0; border-radius: 18px;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent 0px, transparent 3px,
+        rgba(79,70,229,0.025) 3px, rgba(79,70,229,0.025) 4px
+      );
+      animation: scanlines 8s linear infinite;
+      pointer-events: none; z-index: 2;
+    }
+    @keyframes scanlines {
+      from { transform: translateY(0); }
+      to   { transform: translateY(8px); }
+    }
+
+    #qrcode { display: block; min-width: 200px; min-height: 200px; position: relative; z-index: 1; }
+    /* QR image: blur-in to sharp */
+    #qrcode img {
+      border-radius: 8px; display: block;
+      width: 200px; height: 200px;
+      animation: qrSharpen 0.65s var(--ease-out) both;
+    }
+    @keyframes qrSharpen {
+      from { filter: blur(8px); opacity: 0.5; }
+      to   { filter: blur(0); opacity: 1; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       QR SKELETON + SPINNER OVERLAY
+    ══════════════════════════════════════════════════════════════ */
+    .qr-skeleton-wrap { position: relative; display: none; }
+    .qr-skeleton-wrap.show { display: block; }
+    .qr-skeleton {
+      width: 200px; height: 200px; border-radius: 8px;
+      background: linear-gradient(90deg, var(--surface-3) 25%, #dddaf4 50%, var(--surface-3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.3s infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .qr-ring-spinner {
+      position: absolute; top: 50%; left: 50%;
+      width: 40px; height: 40px;
+      margin: -20px 0 0 -20px;
+      border: 2.5px solid rgba(79,70,229,0.15);
+      border-top-color: var(--indigo);
+      border-radius: 50%;
+      animation: spin 0.85s linear infinite;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       RESULT DETAILS — staggered reveal
+    ══════════════════════════════════════════════════════════════ */
+    .result-details { min-width: 0; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 24px; }
+
+    /* Stat card skeletons (loading state) */
+    .stat-card-skel {
+      height: 72px; border-radius: 12px;
+      background: linear-gradient(90deg, var(--surface-3) 25%, #dddaf4 50%, var(--surface-3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.3s 0.15s infinite;
+    }
+    .stat-card-skel:nth-child(2) { animation-delay: 0.3s; }
+    .stat-card-skel:nth-child(3) { animation-delay: 0.45s; }
+    #stats-skeleton { display: none; }
+    #stats-skeleton.show { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 24px; }
+
     .stat-card {
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 12px;
-      text-align: center;
-      opacity: 0;
-      transform: translateY(12px);
-      transition: transform 0.22s var(--ease-spring), box-shadow 0.22s ease;
+      background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 12px; text-align: center;
+      opacity: 0; transform: translateY(18px);
+      transition: box-shadow 0.22s ease, transform 0.22s var(--ease-spring), background 0.3s, border-color 0.3s;
     }
     .stat-card.visible {
-      opacity: 1;
-      transform: translateY(0);
-      transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out), box-shadow 0.22s ease;
+      animation: statIn 0.45s var(--ease-spring) forwards;
     }
-    .stat-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 18px rgba(79,70,229,0.12);
-    }
+    @keyframes statIn { to { opacity: 1; transform: translateY(0); } }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(79,70,229,0.12); }
+
+    /* Expiry flip animation */
     .stat-value {
       font-family: 'Outfit', sans-serif;
       font-size: 20px; font-weight: 700; color: var(--text-1); line-height: 1.2;
+      display: block; overflow: hidden;
     }
-    .stat-label {
-      font-size: 11px; color: var(--text-3);
-      text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; margin-top: 2px;
+    .stat-value.flip { animation: flipVal 0.18s ease both; }
+    @keyframes flipVal {
+      0%   { opacity: 0.3; transform: translateY(-6px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
-    /* Expiry urgency states */
-    .stat-card.expiry-warn .stat-value { color: var(--warning); }
-    .stat-card.expiry-crit {
-      border-color: rgba(239,68,68,0.3);
-      background: rgba(239,68,68,0.04);
-    }
-    .stat-card.expiry-crit .stat-value { color: var(--danger); }
-    .expiry-dot {
-      display: inline-block; width: 7px; height: 7px;
-      border-radius: 50%; background: var(--danger);
-      margin-right: 4px; vertical-align: middle;
-      animation: blink 0.8s infinite;
-    }
+    .stat-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; margin-top: 2px; }
 
-    /* ── LINK BOX ─────────────────────────────────────────────────────── */
-    .link-box { display: flex; gap: 8px; margin-bottom: 20px; }
+    /* Urgency states */
+    .stat-card.expiry-warn .stat-value { color: var(--warning); text-shadow: 0 0 12px rgba(245,158,11,0.4); }
+    .stat-card.expiry-crit { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.04); animation: critPulse 2s ease-in-out infinite; }
+    @keyframes critPulse { 0%,100% { background: rgba(239,68,68,0.04); } 50% { background: rgba(239,68,68,0.08); } }
+    .stat-card.expiry-crit .stat-value { color: var(--danger); }
+    .expiry-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); margin-right: 4px; vertical-align: middle; animation: blink 0.7s infinite; }
+    /* Shake animation for <10min every 30s */
+    .stat-card.shake { animation: wiggle 0.5s var(--ease-spring); }
+    @keyframes wiggle { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-4px); } 40%,80% { transform: translateX(4px); } }
+
+    /* ══════════════════════════════════════════════════════════════
+       LINK BOX (slides up 200ms after stats)
+    ══════════════════════════════════════════════════════════════ */
+    .link-box {
+      display: flex; gap: 8px; margin-bottom: 20px;
+      opacity: 0; transform: translateY(12px);
+    }
+    .link-box.reveal { animation: wordUp 0.4s var(--ease-out) both; }
     .link-input {
-      flex: 1;
-      font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-2);
+      flex: 1; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-2);
       background: var(--surface-3); border: 1px solid var(--border);
       border-radius: 10px; padding: 10px 14px; outline: none; min-width: 0;
       transition: border-color 0.2s;
@@ -647,15 +673,20 @@
       color: var(--text-2); background: var(--surface);
       border: 1px solid var(--border-2); border-radius: 10px;
       padding: 10px 16px; cursor: pointer;
-      transition: all 0.22s var(--ease-spring);
-      display: flex; align-items: center; gap: 6px; white-space: nowrap;
+      transition: all 0.22s var(--ease-spring); perspective: 200px;
+      display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden;
     }
     .btn-copy:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: scale(1.03); }
-    .btn-copy:active { transform: scale(0.97); }
+    .btn-copy:active { transform: scale(0.96); }
     .btn-copy.copied { color: var(--success); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); }
+    .btn-copy .copy-icon { display: inline-flex; transition: transform 0.4s ease; }
+    .btn-copy.flipping .copy-icon { animation: iconFlip 0.4s ease both; }
+    @keyframes iconFlip { 0% { transform: rotateY(0); } 50% { transform: rotateY(90deg); } 100% { transform: rotateY(0); } }
     .btn-copy svg { width: 14px; height: 14px; }
 
-    /* ── ACTION BUTTONS ───────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       ACTION BUTTONS (staggered fade+scale)
+    ══════════════════════════════════════════════════════════════ */
     .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
     .btn-action {
       font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
@@ -663,78 +694,99 @@
       display: flex; align-items: center; justify-content: center; gap: 7px;
       transition: all 0.22s var(--ease-spring);
       text-decoration: none; position: relative; overflow: hidden;
+      opacity: 0; transform: scale(0.9);
     }
-    .btn-action:active { transform: scale(0.97); }
-    .btn-action svg { width: 16px; height: 16px; }
+    .btn-action.reveal { animation: btnReveal 0.4s var(--ease-spring) both; }
+    @keyframes btnReveal { to { opacity: 1; transform: scale(1); } }
+    .btn-action:active { transform: scale(0.96); }
+    .btn-action svg { width: 16px; height: 16px; transition: transform 0.22s var(--ease-spring); }
+
     .btn-primary {
       background: linear-gradient(135deg, var(--indigo), var(--violet));
       color: white; border: none;
       box-shadow: 0 3px 12px rgba(79,70,229,0.28);
     }
-    /* Shimmer sweep on hover */
+    /* Shimmer sweep hover */
     .btn-primary::after {
-      content: '';
-      position: absolute; inset: 0;
+      content: ''; position: absolute; inset: 0;
       background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.22) 50%, transparent 65%);
-      transform: translateX(-100%);
-      transition: transform 0.45s ease;
+      transform: translateX(-150%); transition: transform 0.5s ease;
     }
-    .btn-primary:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 7px 22px rgba(79,70,229,0.38);
-    }
-    .btn-primary:hover::after { transform: translateX(100%); }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 7px 22px rgba(79,70,229,0.38); }
+    .btn-primary:hover::after { transform: translateX(150%); }
+    /* Download icon: bounce down on click */
+    .btn-primary.downloading .dl-icon { animation: dlBounce 0.4s var(--ease-spring); }
+    @keyframes dlBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
     .btn-secondary { background: var(--surface); color: var(--text-2); border: 1px solid var(--border-2); }
     .btn-secondary:hover { border-color: var(--indigo-mid); color: var(--indigo); transform: translateY(-1px); }
+    /* Open File: icon moves NE on hover */
+    #btn-open-file:hover svg { transform: translate(2px, -2px); }
 
-    /* ── EXPIRY WARNING ───────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       EXPIRY WARNING & EXPIRED OVERLAY
+    ══════════════════════════════════════════════════════════════ */
     .expiry-warning {
       display: flex; align-items: center; gap: 10px;
       padding: 12px 14px;
-      background: rgba(245,158,11,0.06);
-      border: 1px solid rgba(245,158,11,0.2);
-      border-radius: 10px;
-      font-size: 13px; color: #92400e;
+      background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 10px; font-size: 13px; color: #92400e;
     }
     .expiry-warning svg { width: 16px; height: 16px; color: var(--warning); flex-shrink: 0; }
 
-    /* Expired overlay */
     .expired-overlay {
-      display: none;
-      margin-top: 12px;
-      padding: 16px;
-      background: rgba(239,68,68,0.06);
-      border: 1px solid rgba(239,68,68,0.2);
-      border-radius: 10px;
-      text-align: center;
+      display: none; margin-top: 12px; padding: 20px 16px;
+      background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 10px; text-align: center;
       font-size: 14px; font-weight: 500; color: var(--danger);
+      position: relative; overflow: hidden;
     }
     .expired-overlay.show { display: block; }
+    /* Scanline animation on expired overlay */
+    .expired-overlay::after {
+      content: ''; position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent 0, transparent 4px, rgba(239,68,68,0.04) 4px, rgba(239,68,68,0.04) 5px);
+      animation: scanExpired 4s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scanExpired { from { transform: translateY(0); } to { transform: translateY(10px); } }
 
-    /* ── UPLOAD ANOTHER ───────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       UPLOAD ANOTHER — marching ants on hover
+    ══════════════════════════════════════════════════════════════ */
     .btn-upload-another {
-      width: 100%;
-      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+      width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
       color: var(--text-2); background: var(--surface-3);
       border: 1.5px dashed var(--border-2);
       padding: 13px; border-radius: 10px; cursor: pointer;
-      transition: all 0.22s var(--ease-spring);
+      transition: color 0.22s, background 0.22s, transform 0.22s var(--ease-spring), border-color 0.22s;
       display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 12px;
+      position: relative;
     }
-    .btn-upload-another:hover { border-color: var(--indigo); color: var(--indigo); background: var(--indigo-light); transform: scale(1.01); }
+    .btn-upload-another:hover {
+      border-color: transparent;
+      color: var(--indigo); background: var(--indigo-light);
+      transform: scale(1.01);
+      /* marching ants via background */
+      background-image:
+        repeating-linear-gradient(90deg, var(--indigo) 0, var(--indigo) 8px, transparent 8px, transparent 16px),
+        repeating-linear-gradient(180deg, var(--indigo) 0, var(--indigo) 8px, transparent 8px, transparent 16px),
+        repeating-linear-gradient(90deg, var(--indigo) 0, var(--indigo) 8px, transparent 8px, transparent 16px),
+        repeating-linear-gradient(180deg, var(--indigo) 0, var(--indigo) 8px, transparent 8px, transparent 16px);
+      background-size: 16px 2px, 2px 16px, 16px 2px, 2px 16px;
+      background-position: 0 0, 100% 0, 0 100%, 0 0;
+      background-repeat: repeat-x, repeat-y, repeat-x, repeat-y;
+      animation: marchAnts 0.6s linear infinite;
+    }
     .btn-upload-another:active { transform: scale(0.98); }
+    @keyframes marchAnts {
+      to { background-position: 16px 0, 100% 16px, -16px 100%, 0 -16px; }
+    }
     .btn-upload-another svg { width: 16px; height: 16px; }
 
-    /* ── FOOTER ───────────────────────────────────────────────────────── */
-    footer {
-      text-align: center; padding: 32px 24px;
-      font-size: 13px; color: var(--text-3);
-      position: relative; z-index: 2;
-    }
-    footer a { color: var(--indigo); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-
-    /* ── TOOLTIP (expiry date on hover) ──────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       TOOLTIP
+    ══════════════════════════════════════════════════════════════ */
     [data-tooltip] { position: relative; cursor: default; }
     [data-tooltip]:hover::after {
       content: attr(data-tooltip);
@@ -745,26 +797,48 @@
       border-radius: 6px; pointer-events: none; z-index: 20;
     }
 
-    /* ── MOBILE ───────────────────────────────────────────────────────── */
+    /* ══════════════════════════════════════════════════════════════
+       FOOTER — underline draw
+    ══════════════════════════════════════════════════════════════ */
+    footer { text-align: center; padding: 32px 24px; font-size: 13px; color: var(--text-3); position: relative; z-index: 2; }
+    footer a { color: var(--indigo); text-decoration: none; position: relative; }
+    footer a::after { content: ''; position: absolute; left: 0; bottom: -1px; width: 100%; height: 1px; background: var(--indigo); transform: scaleX(0); transform-origin: left; transition: transform 0.28s var(--ease-out); }
+    footer a:hover::after { transform: scaleX(1); }
+
+    /* ══════════════════════════════════════════════════════════════
+       MOBILE
+    ══════════════════════════════════════════════════════════════ */
     @media (max-width: 640px) {
       main { padding: 28px 16px 60px; }
       .result-body { grid-template-columns: 1fr; gap: 24px; }
       .qr-wrapper { display: block; text-align: center; }
-      #qrcode, #qrcode canvas, #qrcode img { width: 100% !important; height: auto !important; }
+      #qrcode, #qrcode img { width: 100% !important; height: auto !important; }
       .stats-grid { gap: 8px; }
       .action-row { grid-template-columns: 1fr; }
       .result-header { flex-wrap: wrap; }
       .result-badge { margin-left: 0; }
-      /* Larger tap targets */
       .btn-action, .btn-copy, .btn-choose, .btn-upload-another { min-height: 44px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       REDUCED MOTION — disable all decorative animations
+    ══════════════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .word, .hero p, #upload-card, .result-card.show,
+      .stat-card, .link-box, .btn-action { opacity: 1 !important; transform: none !important; }
     }
   </style>
 </head>
 <body>
 
+  <div class="orb3" aria-hidden="true"></div>
   <div class="noise" aria-hidden="true"></div>
 
-  <!-- Progress bar -->
   <div class="progress-bar-wrap" id="progress-wrap" aria-hidden="true">
     <div class="progress-bar" id="progress-bar"></div>
   </div>
@@ -773,7 +847,7 @@
     <div class="nav-inner">
       <a href="/" class="logo" aria-label="PictoQR home">
         <div class="logo-icon">
-          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 20 20" fill="none">
             <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white"/>
             <rect x="12" y="2" width="6" height="6" rx="1.5" fill="white"/>
             <rect x="2" y="12" width="6" height="6" rx="1.5" fill="white"/>
@@ -788,7 +862,16 @@
         </div>
         <span class="logo-name">Picto<span>QR</span></span>
       </a>
-      <div class="nav-badge" aria-label="Service status">Free · No sign-up</div>
+      <div class="nav-right">
+        <button class="btn-sound muted" id="btn-sound" aria-label="Toggle sound" title="Toggle sound">
+          <!-- muted icon -->
+          <svg id="sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+        </button>
+        <div class="nav-badge" aria-label="Service status">Free · No sign-up</div>
+      </div>
     </div>
   </nav>
 
@@ -796,7 +879,9 @@
 
     <!-- HERO -->
     <div class="hero">
-      <h1>Turn any file into a<br /><em>scannable QR code</em></h1>
+      <h1 id="hero-h1" aria-label="Turn any file into a scannable QR code">
+        <!-- Words injected by JS for stagger animation -->
+      </h1>
       <p>Upload a file, get a short link &amp; QR code. Share instantly — no account needed.</p>
     </div>
 
@@ -820,10 +905,14 @@
         <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Drop file here or click to browse">
           <input type="file" id="file-input" aria-label="File input" />
           <div class="drop-icon" id="drop-icon">
-            <svg id="drop-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <svg id="drop-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
           </div>
-          <h3>Drop your file here</h3>
-          <p>or click to browse from your device</p>
+          <h3 id="drop-headline">Drop your file here</h3>
+          <p id="drop-subtext">or click to browse from your device</p>
           <button class="btn-choose" type="button">Choose file</button>
           <p class="drop-hint">Any file type · Up to 100 MB</p>
         </div>
@@ -839,7 +928,7 @@
           <div class="customize-body" id="customize-body" aria-hidden="true">
             <div class="customize-inner">
               <div class="option-label">Link Expiry</div>
-              <div class="expiry-group" role="group" aria-label="Link expiry options">
+              <div class="expiry-group" role="group" aria-label="Link expiry">
                 <button class="expiry-btn" data-expiry="1h">1 hour</button>
                 <button class="expiry-btn" data-expiry="7h">7 hours</button>
                 <button class="expiry-btn" data-expiry="24h">24 hours</button>
@@ -847,14 +936,14 @@
                 <button class="expiry-btn" data-expiry="15d">15 days</button>
               </div>
               <div class="option-label">QR Color</div>
-              <div class="color-group" role="group" aria-label="QR code color options">
-                <div class="color-swatch active" data-color="#4F46E5" style="background:#4F46E5;" title="Indigo" tabindex="0" role="radio" aria-checked="true" aria-label="Indigo"></div>
-                <div class="color-swatch" data-color="#0F172A" style="background:#0F172A;" title="Black" tabindex="0" role="radio" aria-checked="false" aria-label="Black"></div>
-                <div class="color-swatch" data-color="#0EA5E9" style="background:#0EA5E9;" title="Sky" tabindex="0" role="radio" aria-checked="false" aria-label="Sky blue"></div>
-                <div class="color-swatch" data-color="#10B981" style="background:#10B981;" title="Emerald" tabindex="0" role="radio" aria-checked="false" aria-label="Emerald"></div>
-                <div class="color-swatch" data-color="#F59E0B" style="background:#F59E0B;" title="Amber" tabindex="0" role="radio" aria-checked="false" aria-label="Amber"></div>
-                <div class="color-swatch" data-color="#EF4444" style="background:#EF4444;" title="Red" tabindex="0" role="radio" aria-checked="false" aria-label="Red"></div>
-                <div class="color-swatch" data-color="#EC4899" style="background:#EC4899;" title="Pink" tabindex="0" role="radio" aria-checked="false" aria-label="Pink"></div>
+              <div class="color-group" role="group" aria-label="QR color">
+                <div class="color-swatch active" data-color="#4F46E5" style="background:#4F46E5" tabindex="0" role="radio" aria-checked="true" aria-label="Indigo"></div>
+                <div class="color-swatch" data-color="#0F172A" style="background:#0F172A" tabindex="0" role="radio" aria-checked="false" aria-label="Black"></div>
+                <div class="color-swatch" data-color="#0EA5E9" style="background:#0EA5E9" tabindex="0" role="radio" aria-checked="false" aria-label="Sky"></div>
+                <div class="color-swatch" data-color="#10B981" style="background:#10B981" tabindex="0" role="radio" aria-checked="false" aria-label="Emerald"></div>
+                <div class="color-swatch" data-color="#F59E0B" style="background:#F59E0B" tabindex="0" role="radio" aria-checked="false" aria-label="Amber"></div>
+                <div class="color-swatch" data-color="#EF4444" style="background:#EF4444" tabindex="0" role="radio" aria-checked="false" aria-label="Red"></div>
+                <div class="color-swatch" data-color="#EC4899" style="background:#EC4899" tabindex="0" role="radio" aria-checked="false" aria-label="Pink"></div>
               </div>
             </div>
           </div>
@@ -879,18 +968,29 @@
           <div class="file-name" id="result-file-name"></div>
           <div class="file-meta" id="result-file-meta"></div>
         </div>
-        <div class="result-badge" aria-label="QR code ready">QR code ready</div>
+        <div class="result-badge" id="result-badge">QR code ready</div>
       </div>
 
       <div class="result-body">
         <div>
-          <div class="qr-wrapper">
-            <div class="qr-skeleton" id="qr-skeleton" aria-label="Loading QR code"></div>
+          <div class="qr-wrapper" id="qr-wrapper">
+            <!-- skeleton shown during upload -->
+            <div class="qr-skeleton-wrap" id="qr-skel-wrap">
+              <div class="qr-skeleton"></div>
+              <div class="qr-ring-spinner"></div>
+            </div>
             <div id="qrcode"></div>
           </div>
         </div>
 
         <div class="result-details">
+          <!-- stat skeletons shown during loading -->
+          <div id="stats-skeleton">
+            <div class="stat-card-skel"></div>
+            <div class="stat-card-skel"></div>
+            <div class="stat-card-skel"></div>
+          </div>
+
           <div class="stats-grid" id="stats-grid">
             <div class="stat-card" id="stat-card-scans">
               <div class="stat-value" id="stat-scans">0</div>
@@ -906,17 +1006,19 @@
             </div>
           </div>
 
-          <div class="link-box">
+          <div class="link-box" id="link-box">
             <input type="text" class="link-input" id="link-input" readonly aria-label="Short link" />
             <button class="btn-copy" id="btn-copy" aria-label="Copy link">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Copy
+              <span class="copy-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </span>
+              <span class="copy-label">Copy</span>
             </button>
           </div>
 
           <div class="action-row">
             <button class="btn-action btn-primary" id="btn-download" aria-label="Download QR code">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <svg class="dl-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Download QR
             </button>
             <button class="btn-action btn-secondary" id="btn-open-file" aria-label="Open file">
@@ -950,350 +1052,590 @@
   </footer>
 
   <script>
-    // ── State ────────────────────────────────────────────────────────────
-    let selectedFile    = null;
-    let selectedColor   = '#4F46E5';
-    let selectedExpiry  = '7d';
-    let shortUrl        = '';
-    let expiresAtMs     = null;   // epoch ms or null (permanent)
-    let countdownTimer  = null;
+  /* ════════════════════════════════════════════════════════════════
+     REDUCED MOTION CHECK
+  ════════════════════════════════════════════════════════════════ */
+  const NO_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // ── DOM refs ─────────────────────────────────────────────────────────
-    const dropZone        = document.getElementById('drop-zone');
-    const dropIcon        = document.getElementById('drop-icon');
-    const dropSvg         = document.getElementById('drop-svg');
-    const fileInput       = document.getElementById('file-input');
-    const fileSelected    = document.getElementById('file-selected');
-    const selName         = document.getElementById('selected-file-name');
-    const selSize         = document.getElementById('selected-file-size');
-    const btnRemove       = document.getElementById('btn-remove-file');
-    const btnGenerate     = document.getElementById('btn-generate');
-    const uploadCard      = document.getElementById('upload-card');
-    const resultCard      = document.getElementById('result-card');
-    const customizeToggle = document.getElementById('customize-toggle');
-    const customizeBody   = document.getElementById('customize-body');
-    const progressWrap    = document.getElementById('progress-wrap');
-    const progressBar     = document.getElementById('progress-bar');
-    const qrSkeleton      = document.getElementById('qr-skeleton');
+  /* ════════════════════════════════════════════════════════════════
+     SOUND ENGINE (Web Audio API synthesis)
+  ════════════════════════════════════════════════════════════════ */
+  let audioCtx = null;
+  let soundEnabled = false;
 
-    // ── Utility ──────────────────────────────────────────────────────────
-    function formatBytes(b) {
-      if (b < 1024)        return b + ' B';
-      if (b < 1048576)     return (b / 1024).toFixed(1) + ' KB';
-      return (b / 1048576).toFixed(1) + ' MB';
-    }
+  function getAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
 
-    function formatCountdown(ms) {
-      if (ms <= 0) return 'Expired';
-      const s = Math.floor(ms / 1000);
-      const d = Math.floor(s / 86400);
-      const h = Math.floor((s % 86400) / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      const sec = s % 60;
-      if (d >= 1)  return `${d}d ${h}h`;
-      if (h >= 1)  return `${h}h ${m}m`;
-      if (m >= 1)  return `${m}m ${sec}s`;
-      return `${sec}s`;
-    }
+  function playWhoosh() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudio();
+      const dur = 0.28;
+      const buf = ctx.createBuffer(1, ctx.sampleRate * dur, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 600; f.Q.value = 0.6;
+      f.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + dur);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.12, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      src.connect(f); f.connect(g); g.connect(ctx.destination);
+      src.start();
+    } catch(_) {}
+  }
 
-    function animateCountUp(el, target, ms) {
-      const start = performance.now();
-      (function tick(now) {
-        const t = Math.min((now - start) / ms, 1);
-        el.textContent = Math.round(t * target);
-        if (t < 1) requestAnimationFrame(tick);
-      })(start);
-    }
+  function playDing() {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudio();
+      const osc = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = 880;
+      osc2.type = 'sine'; osc2.frequency.value = 1320;
+      g.gain.setValueAtTime(0.18, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+      osc.connect(g); osc2.connect(g); g.connect(ctx.destination);
+      osc.start(); osc2.start();
+      osc.stop(ctx.currentTime + 0.9); osc2.stop(ctx.currentTime + 0.9);
+    } catch(_) {}
+  }
 
-    function setProgress(pct) {
-      progressBar.style.width = pct + '%';
-      progressWrap.classList.toggle('active', pct > 0 && pct < 100);
-      if (pct >= 100) setTimeout(() => { progressWrap.classList.remove('active'); progressBar.style.width = '0%'; }, 400);
-    }
+  document.getElementById('btn-sound').addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('btn-sound');
+    btn.classList.toggle('muted', !soundEnabled);
+    // Swap icon
+    document.getElementById('sound-icon').innerHTML = soundEnabled
+      ? `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+         <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>`
+      : `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+         <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>`;
+    // Unlock audio context on first user gesture
+    if (soundEnabled && audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  });
 
-    // ── Drop zone interactions ────────────────────────────────────────────
-    dropZone.addEventListener('click', e => {
-      if (e.target.classList.contains('btn-choose') || e.target === dropZone || !e.target.closest('button')) fileInput.click();
+  /* ════════════════════════════════════════════════════════════════
+     PAGE LOAD — hero word stagger + typewriter
+  ════════════════════════════════════════════════════════════════ */
+  (function buildHero() {
+    const h1 = document.getElementById('hero-h1');
+    const firstLine = ['Turn', 'any', 'file', 'into', 'a'];
+
+    // Word spans for first line
+    const lineOne = document.createElement('span');
+    lineOne.style.display = 'block';
+    firstLine.forEach((w, i) => {
+      const s = document.createElement('span');
+      s.className = 'word';
+      s.style.setProperty('--wi', i);
+      s.textContent = w;
+      lineOne.appendChild(s);
+      if (i < firstLine.length - 1) lineOne.appendChild(document.createTextNode(' '));
     });
-    document.querySelector('.btn-choose').addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
-    dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
-    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', e => { if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drag-over'); });
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
+    h1.appendChild(lineOne);
+
+    // Typewriter line
+    const twLine = document.createElement('span');
+    twLine.className = 'typewriter-line';
+    const em = document.createElement('em');
+    em.id = 'tw-em';
+    const cursor = document.createElement('span');
+    cursor.className = 'tw-cursor';
+    cursor.id = 'tw-cursor';
+    twLine.appendChild(em); twLine.appendChild(cursor);
+    h1.appendChild(twLine);
+
+    // Start typewriter after last word lands (5 * 80ms + 50ms base + 500ms duration ≈ 950ms)
+    const TW_PHRASE = 'scannable QR code';
+    let twIdx = 0;
+    function typeNext() {
+      if (twIdx === 0) cursor.style.opacity = '1'; // show cursor
+      if (twIdx <= TW_PHRASE.length) {
+        em.textContent = TW_PHRASE.slice(0, twIdx);
+        twIdx++;
+        const delay = twIdx === TW_PHRASE.length + 1 ? 0 : 55 + Math.random() * 30;
+        setTimeout(typeNext, delay);
+      }
+    }
+    if (!NO_MOTION) {
+      setTimeout(typeNext, 920);
+    } else {
+      em.textContent = TW_PHRASE;
+      cursor.style.display = 'none';
+    }
+  })();
+
+  /* ════════════════════════════════════════════════════════════════
+     STATE
+  ════════════════════════════════════════════════════════════════ */
+  let selectedFile   = null;
+  let selectedColor  = '#4F46E5';
+  let selectedExpiry = '7d';
+  let shortUrl       = '';
+  let expiresAtMs    = null;
+  let countdownTimer = null;
+  let shakeTimer     = null;
+  let prevCountdownStr = '';
+
+  /* ════════════════════════════════════════════════════════════════
+     DOM REFS
+  ════════════════════════════════════════════════════════════════ */
+  const dropZone     = document.getElementById('drop-zone');
+  const dropIcon     = document.getElementById('drop-icon');
+  const dropSvg      = document.getElementById('drop-svg');
+  const fileInput    = document.getElementById('file-input');
+  const fileSelected = document.getElementById('file-selected');
+  const selName      = document.getElementById('selected-file-name');
+  const selSize      = document.getElementById('selected-file-size');
+  const btnRemove    = document.getElementById('btn-remove-file');
+  const btnGenerate  = document.getElementById('btn-generate');
+  const uploadCard   = document.getElementById('upload-card');
+  const resultCard   = document.getElementById('result-card');
+  const customizeToggle = document.getElementById('customize-toggle');
+  const customizeBody   = document.getElementById('customize-body');
+  const progressWrap = document.getElementById('progress-wrap');
+  const progressBar  = document.getElementById('progress-bar');
+  const qrSkelWrap   = document.getElementById('qr-skel-wrap');
+  const statsSkel    = document.getElementById('stats-skeleton');
+
+  /* ════════════════════════════════════════════════════════════════
+     UTILITIES
+  ════════════════════════════════════════════════════════════════ */
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
+  }
+
+  function formatCountdown(ms) {
+    if (ms <= 0) return 'Expired';
+    const s = Math.floor(ms / 1000);
+    const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60), sec = s % 60;
+    if (d >= 1) return `${d}d ${h}h`;
+    if (h >= 1) return `${h}h ${m}m`;
+    if (m >= 1) return `${m}m ${sec}s`;
+    return `${sec}s`;
+  }
+
+  function setProgress(pct) {
+    progressBar.style.width = pct + '%';
+    progressWrap.classList.toggle('active', pct > 0 && pct < 100);
+    if (pct >= 100) setTimeout(() => { progressWrap.classList.remove('active'); progressBar.style.width = '0%'; }, 500);
+  }
+
+  function animateCountUp(el, target, ms) {
+    if (target === 0) { el.textContent = '0'; return; }
+    const start = performance.now();
+    (function tick(now) {
+      const t = Math.min((now - start) / ms, 1);
+      const ease = 1 - Math.pow(1 - t, 3); // easeOut cubic
+      el.textContent = Math.round(ease * target);
+      if (t < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  /* Flip value with roll-up animation */
+  function flipValue(el, newHtml) {
+    if (NO_MOTION) { el.innerHTML = newHtml; return; }
+    el.classList.remove('flip');
+    void el.offsetWidth; // reflow
+    el.innerHTML = newHtml;
+    el.classList.add('flip');
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     DROP ZONE INTERACTIONS
+  ════════════════════════════════════════════════════════════════ */
+  dropZone.addEventListener('click', e => {
+    if (!e.target.closest('.btn-choose') || e.target === dropZone) fileInput.click();
+  });
+  document.querySelector('.btn-choose').addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+  dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    if (!dropZone.classList.contains('drag-over')) {
+      dropZone.classList.add('drag-over');
+      document.getElementById('drop-headline').textContent = 'Release to upload!';
+      document.getElementById('drop-subtext').style.opacity = '0.5';
+    }
+  });
+  dropZone.addEventListener('dragleave', e => {
+    if (!dropZone.contains(e.relatedTarget)) {
       dropZone.classList.remove('drag-over');
-      const f = e.dataTransfer.files[0];
-      if (f) acceptFile(f);
-    });
-    fileInput.addEventListener('change', e => { if (e.target.files[0]) acceptFile(e.target.files[0]); });
-
-    function acceptFile(f) {
-      // Brief green flash + checkmark
-      dropZone.classList.add('accepted');
-      dropIcon.classList.add('accepted-icon');
-      dropSvg.innerHTML = '<polyline points="20 6 9 17 4 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-      setTimeout(() => {
-        dropZone.classList.remove('accepted');
-        dropIcon.classList.remove('accepted-icon');
-        dropSvg.innerHTML = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>';
-        setFile(f);
-      }, 500);
+      document.getElementById('drop-headline').textContent = 'Drop your file here';
+      document.getElementById('drop-subtext').style.opacity = '';
     }
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    document.getElementById('drop-headline').textContent = 'Drop your file here';
+    document.getElementById('drop-subtext').style.opacity = '';
+    const f = e.dataTransfer.files[0];
+    if (f) acceptFile(f);
+  });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) acceptFile(e.target.files[0]); });
 
-    function setFile(f) {
-      selectedFile = f;
-      selName.textContent = f.name;
-      selSize.textContent = formatBytes(f.size);
-      fileSelected.classList.add('show');
-      dropZone.style.display = 'none';
-      btnGenerate.disabled = false;
-      btnGenerate.removeAttribute('aria-disabled');
-    }
+  function acceptFile(f) {
+    playWhoosh();
+    // Checkmark draw
+    dropZone.classList.add('drop-accepted');
+    dropIcon.classList.add('check-icon');
+    dropSvg.innerHTML = `<polyline class="check-path" points="20 6 9 17 4 12"
+      stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+    setTimeout(() => {
+      dropZone.classList.remove('drop-accepted');
+      dropIcon.classList.remove('check-icon');
+      dropSvg.innerHTML = `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>`;
+      setFile(f);
+    }, 520);
+  }
 
-    function clearFile() {
-      selectedFile = null;
-      fileInput.value = '';
-      fileSelected.classList.remove('show');
-      dropZone.style.display = '';
-      btnGenerate.disabled = true;
-      btnGenerate.setAttribute('aria-disabled', 'true');
-    }
+  function setFile(f) {
+    selectedFile = f;
+    selName.textContent = f.name;
+    selSize.textContent = formatBytes(f.size);
+    fileSelected.classList.add('show');
+    dropZone.style.display = 'none';
+    btnGenerate.disabled = false;
+    btnGenerate.removeAttribute('aria-disabled');
+  }
 
-    btnRemove.addEventListener('click', clearFile);
+  function clearFile() {
+    selectedFile = null; fileInput.value = '';
+    fileSelected.classList.remove('show');
+    dropZone.style.display = '';
+    btnGenerate.disabled = true;
+    btnGenerate.setAttribute('aria-disabled', 'true');
+  }
 
-    // ── Customize panel ───────────────────────────────────────────────────
-    customizeToggle.addEventListener('click', () => {
-      const open = customizeBody.classList.toggle('open');
-      customizeToggle.classList.toggle('open', open);
-      customizeToggle.setAttribute('aria-expanded', open);
-      customizeBody.setAttribute('aria-hidden', !open);
+  btnRemove.addEventListener('click', clearFile);
+
+  /* ════════════════════════════════════════════════════════════════
+     CUSTOMIZE PANEL
+  ════════════════════════════════════════════════════════════════ */
+  customizeToggle.addEventListener('click', () => {
+    const open = customizeBody.classList.toggle('open');
+    customizeToggle.classList.toggle('open', open);
+    customizeToggle.setAttribute('aria-expanded', open);
+    customizeBody.setAttribute('aria-hidden', !open);
+  });
+  document.querySelectorAll('.expiry-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.expiry-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedExpiry = btn.dataset.expiry;
     });
-
-    document.querySelectorAll('.expiry-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.expiry-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedExpiry = btn.dataset.expiry;
-      });
-    });
-
-    document.querySelectorAll('.color-swatch').forEach(swatch => {
-      swatch.addEventListener('click', () => selectSwatch(swatch));
-      swatch.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSwatch(swatch); } });
-    });
-    function selectSwatch(swatch) {
+  });
+  document.querySelectorAll('.color-swatch').forEach(sw => {
+    const pick = () => {
       document.querySelectorAll('.color-swatch').forEach(s => { s.classList.remove('active'); s.setAttribute('aria-checked','false'); });
-      swatch.classList.add('active');
-      swatch.setAttribute('aria-checked','true');
-      selectedColor = swatch.dataset.color;
+      sw.classList.add('active'); sw.setAttribute('aria-checked','true');
+      selectedColor = sw.dataset.color;
+    };
+    sw.addEventListener('click', pick);
+    sw.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+  });
+
+  /* ════════════════════════════════════════════════════════════════
+     UPLOAD
+  ════════════════════════════════════════════════════════════════ */
+  btnGenerate.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    btnGenerate.innerHTML = '<div class="spinner"></div> Uploading…';
+    btnGenerate.disabled = true;
+
+    // Show skeletons, hide real content
+    qrSkelWrap.classList.add('show');
+    document.getElementById('qrcode').innerHTML = '';
+    statsSkel.classList.add('show');
+    document.getElementById('stats-grid').style.display = 'none';
+    document.getElementById('link-box').style.display = 'none';
+    document.querySelectorAll('.btn-action').forEach(b => { b.style.opacity = '0'; b.style.transform = 'scale(0.9)'; });
+
+    const fd = new FormData();
+    fd.append('file', selectedFile);
+    fd.append('expiry', selectedExpiry);
+    fd.append('qrDark', selectedColor);
+    fd.append('qrLight', '#ffffff');
+
+    try {
+      const data = await xhrUpload('/api/upload', fd);
+      shortUrl    = data.shortUrl;
+      expiresAtMs = data.expiresAt ? new Date(data.expiresAt).getTime() : null;
+      showResult(selectedFile, data);
+    } catch (err) {
+      qrSkelWrap.classList.remove('show');
+      statsSkel.classList.remove('show');
+      document.getElementById('stats-grid').style.display = '';
+      document.getElementById('link-box').style.display = '';
+      alert(err.message || 'Upload failed. Please try again.');
+      resetGenerateBtn();
+      btnGenerate.disabled = false;
     }
+  });
 
-    // ── Upload ────────────────────────────────────────────────────────────
-    btnGenerate.addEventListener('click', async () => {
-      if (!selectedFile) return;
+  function xhrUpload(url, fd) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+      xhr.upload.addEventListener('progress', e => {
+        if (e.lengthComputable) setProgress(Math.round(e.loaded / e.total * 88));
+      });
+      xhr.addEventListener('load', () => {
+        setProgress(100);
+        try {
+          const d = JSON.parse(xhr.responseText);
+          if (!d.success) reject(new Error(d.error || 'Upload failed'));
+          else resolve(d);
+        } catch { reject(new Error('Invalid server response')); }
+      });
+      xhr.addEventListener('error', () => reject(new Error('Network error')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+      xhr.send(fd);
+    });
+  }
 
-      btnGenerate.innerHTML = '<div class="spinner"></div> Uploading…';
-      btnGenerate.disabled = true;
+  function resetGenerateBtn() {
+    btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
+  }
 
-      // Show skeleton while uploading + processing
-      qrSkeleton.classList.add('show');
-      document.getElementById('qrcode').innerHTML = '';
+  /* ════════════════════════════════════════════════════════════════
+     SHOW RESULT
+  ════════════════════════════════════════════════════════════════ */
+  function showResult(file, data) {
+    document.getElementById('result-file-name').textContent = file.name;
+    document.getElementById('result-file-meta').textContent = formatBytes(file.size);
 
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('expiry', selectedExpiry);
-      formData.append('qrDark', selectedColor);
-      formData.append('qrLight', '#ffffff');
+    // Hide upload card, show result
+    uploadCard.style.display = 'none';
+    resultCard.classList.add('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      try {
-        // Use XHR for real upload progress
-        const data = await xhrUpload('/api/upload', formData);
-        shortUrl   = data.shortUrl;
-        expiresAtMs = data.expiresAt ? new Date(data.expiresAt).getTime() : null;
-        showResult(selectedFile, data);
-      } catch (err) {
-        qrSkeleton.classList.remove('show');
-        alert(err.message || 'Upload failed. Please try again.');
-        resetGenerateBtn();
-        btnGenerate.disabled = false;
-      }
+    // Badge slide in
+    const badge = document.getElementById('result-badge');
+    badge.classList.add('badge-in');
+
+    // Remove skeleton, show QR image (blurs to sharp via CSS keyframe)
+    qrSkelWrap.classList.remove('show');
+    const img = new Image();
+    img.src = data.qrCode;
+    img.style.cssText = 'border-radius:8px;display:block;width:200px;height:200px;';
+    img.alt = 'QR code';
+    document.getElementById('qrcode').appendChild(img);
+
+    // Remove stat skeletons, show real stats with stagger
+    statsSkel.classList.remove('show');
+    const statsGrid = document.getElementById('stats-grid');
+    statsGrid.style.display = '';
+    const statCards = statsGrid.querySelectorAll('.stat-card');
+    statCards.forEach((card, i) => {
+      card.style.animationDelay = `${i * 120}ms`;
+      setTimeout(() => card.classList.add('visible'), 50 + i * 120);
     });
 
-    function xhrUpload(url, formData) {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', url);
+    // Animate scans count-up
+    animateCountUp(document.getElementById('stat-scans'), data.scanCount ?? 0, 800);
+    document.getElementById('stat-size').textContent = formatBytes(file.size);
 
-        xhr.upload.addEventListener('progress', e => {
-          if (e.lengthComputable) setProgress(Math.round(e.loaded / e.total * 90));
-        });
-
-        xhr.addEventListener('load', () => {
-          setProgress(100);
-          try {
-            const d = JSON.parse(xhr.responseText);
-            if (!d.success) reject(new Error(d.error || 'Upload failed'));
-            else resolve(d);
-          } catch { reject(new Error('Invalid server response')); }
-        });
-        xhr.addEventListener('error', () => reject(new Error('Network error')));
-        xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
-        xhr.send(formData);
-      });
+    // Expiry tooltip
+    const expiryCard = document.getElementById('stat-card-expiry');
+    if (expiresAtMs) {
+      expiryCard.setAttribute('data-tooltip', `Expires ${new Date(expiresAtMs).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})}`);
     }
 
-    function resetGenerateBtn() {
-      btnGenerate.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Generate QR Code`;
-    }
+    // Start countdown
+    startCountdown();
 
-    // ── Show result ───────────────────────────────────────────────────────
-    function showResult(file, data) {
-      document.getElementById('result-file-name').textContent = file.name;
-      document.getElementById('result-file-meta').textContent = formatBytes(file.size);
-
-      // Animate stats in with stagger
-      const statCards = document.querySelectorAll('.stat-card');
-      statCards.forEach((card, i) => {
-        card.style.transitionDelay = `${i * 100}ms`;
-        setTimeout(() => card.classList.add('visible'), 50 + i * 100);
-      });
-
-      animateCountUp(document.getElementById('stat-scans'), data.scanCount ?? 0, 700);
-      document.getElementById('stat-size').textContent = formatBytes(file.size);
-
-      // Build QR code from server-returned data URL
-      qrSkeleton.classList.remove('show');
-      const qrImg = new Image();
-      qrImg.src = data.qrCode;
-      qrImg.style.cssText = 'border-radius:8px;display:block;width:200px;height:200px;';
-      qrImg.alt = 'QR code';
-      document.getElementById('qrcode').appendChild(qrImg);
-
-      // Short link
+    // Link box: slides up 200ms after last stat (360ms total)
+    const linkBox = document.getElementById('link-box');
+    linkBox.style.display = '';
+    setTimeout(() => {
+      linkBox.classList.add('reveal');
       document.getElementById('link-input').value = shortUrl;
+    }, 380);
 
-      // Expiry card with tooltip
-      const expiryCard = document.getElementById('stat-card-expiry');
-      if (expiresAtMs) {
-        const isoStr = new Date(expiresAtMs).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
-        expiryCard.setAttribute('data-tooltip', `Expires ${isoStr}`);
-      }
+    // Buttons stagger in 100ms apart, after link box
+    const buttons = document.querySelectorAll('.btn-action');
+    buttons.forEach((btn, i) => {
+      setTimeout(() => {
+        btn.classList.add('reveal');
+        btn.style.animationDelay = '0ms';
+      }, 480 + i * 100);
+    });
 
-      // Expiry warning for ≤24h
-      if (expiresAtMs && (expiresAtMs - Date.now()) <= 86_400_000) {
-        document.getElementById('expiry-warning').style.display = 'flex';
-        const d = new Date(expiresAtMs);
-        document.getElementById('expiry-text').textContent =
-          `This file expires ${d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} — download the QR to keep access`;
-      }
-
-      // Hide upload, show result
-      uploadCard.style.display = 'none';
-      resultCard.classList.add('show');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Start live countdown
-      startCountdown();
-
-      // Confetti!
-      setTimeout(launchConfetti, 180);
+    // Expiry warning if ≤24h
+    if (expiresAtMs && (expiresAtMs - Date.now()) <= 86_400_000) {
+      document.getElementById('expiry-warning').style.display = 'flex';
+      const d = new Date(expiresAtMs);
+      document.getElementById('expiry-text').textContent =
+        `This file expires ${d.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} — download the QR to keep access`;
     }
 
-    // ── Countdown ─────────────────────────────────────────────────────────
-    function startCountdown() {
-      if (countdownTimer) clearInterval(countdownTimer);
-      if (!expiresAtMs) {
-        document.getElementById('stat-expiry').textContent = '∞';
-        return;
-      }
-      function tick() {
-        const rem = expiresAtMs - Date.now();
-        const el  = document.getElementById('stat-expiry');
-        const card = document.getElementById('stat-card-expiry');
+    // Confetti + ding
+    setTimeout(() => { launchConfetti(); playDing(); }, 200);
+  }
 
-        if (rem <= 0) {
-          el.textContent = 'Expired';
-          clearInterval(countdownTimer);
+  /* ════════════════════════════════════════════════════════════════
+     COUNTDOWN — per-second flip
+  ════════════════════════════════════════════════════════════════ */
+  function startCountdown() {
+    if (countdownTimer) clearInterval(countdownTimer);
+    if (shakeTimer) clearInterval(shakeTimer);
+
+    if (!expiresAtMs) {
+      document.getElementById('stat-expiry').textContent = '∞';
+      return;
+    }
+
+    function tick() {
+      const rem = expiresAtMs - Date.now();
+      const el   = document.getElementById('stat-expiry');
+      const card = document.getElementById('stat-card-expiry');
+
+      if (rem <= 0) {
+        clearInterval(countdownTimer);
+        if (shakeTimer) clearInterval(shakeTimer);
+        flipValue(el, 'Expired');
+        setTimeout(() => {
           resultCard.classList.add('expired-state');
           document.getElementById('expired-overlay').classList.add('show');
           document.getElementById('expiry-warning').style.display = 'none';
-          card.classList.add('expiry-crit');
-          return;
-        }
-
-        // Urgency indicators
-        const oneHour = 3_600_000;
-        const tenMin  = 600_000;
-        card.classList.toggle('expiry-warn', rem <= oneHour && rem > tenMin);
-        card.classList.toggle('expiry-crit', rem <= tenMin);
-
-        const dot = rem <= tenMin ? '<span class="expiry-dot" aria-hidden="true"></span>' : '';
-        el.innerHTML = dot + formatCountdown(rem);
+        }, 500);
+        card.classList.add('expiry-crit');
+        return;
       }
-      tick();
-      countdownTimer = setInterval(tick, 1000);
+
+      const oneHour = 3_600_000, tenMin = 600_000;
+      card.classList.toggle('expiry-warn', rem <= oneHour && rem > tenMin);
+      card.classList.toggle('expiry-crit', rem <= tenMin);
+
+      const dot = rem <= tenMin ? '<span class="expiry-dot" aria-hidden="true"></span>' : '';
+      const newStr = dot + formatCountdown(rem);
+
+      if (newStr !== prevCountdownStr) {
+        flipValue(el, newStr);
+        prevCountdownStr = newStr;
+      }
+
+      // Set up periodic shake when < 10min
+      if (rem <= tenMin && !shakeTimer) {
+        shakeTimer = setInterval(() => {
+          const c = document.getElementById('stat-card-expiry');
+          c.classList.remove('shake');
+          void c.offsetWidth;
+          c.classList.add('shake');
+        }, 30_000);
+      }
     }
 
-    // ── Confetti ──────────────────────────────────────────────────────────
-    function launchConfetti() {
-      if (typeof confetti !== 'function') return;
-      const colors = ['#4F46E5','#7C3AED','#10B981','#F59E0B','#EC4899','#0EA5E9'];
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.4 }, colors });
-      setTimeout(() => confetti({ particleCount: 40, spread: 100, origin: { y: 0.45 }, colors }), 200);
-    }
+    tick();
+    countdownTimer = setInterval(tick, 1000);
+  }
 
-    // ── Copy link ─────────────────────────────────────────────────────────
-    document.getElementById('btn-copy').addEventListener('click', () => {
-      const url = document.getElementById('link-input').value;
-      navigator.clipboard.writeText(url).then(() => {
-        const btn = document.getElementById('btn-copy');
-        btn.classList.add('copied');
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
-        // Scale-bounce
-        btn.style.transform = 'scale(1.12)';
-        setTimeout(() => { btn.style.transform = ''; }, 200);
-        setTimeout(() => {
-          btn.classList.remove('copied');
-          btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
-        }, 2200);
-      });
+  /* ════════════════════════════════════════════════════════════════
+     CONFETTI — dual cannons + center burst
+  ════════════════════════════════════════════════════════════════ */
+  function launchConfetti() {
+    if (NO_MOTION || typeof confetti !== 'function') return;
+    const colors = ['#4F46E5','#7C3AED','#ffffff','#0EA5E9','#C7D2FE'];
+    // Left cannon
+    confetti({ particleCount: 60, angle: 60, spread: 55, origin: { x: 0.1, y: 0.7 }, colors, decay: 0.92 });
+    // Right cannon
+    confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 0.9, y: 0.7 }, colors, decay: 0.92 });
+    // Center top burst after 300ms
+    setTimeout(() => confetti({ particleCount: 40, spread: 80, origin: { x: 0.5, y: 0.25 }, colors, decay: 0.92, startVelocity: 20 }), 300);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     COPY BUTTON — icon flip
+  ════════════════════════════════════════════════════════════════ */
+  document.getElementById('btn-copy').addEventListener('click', () => {
+    const url = document.getElementById('link-input').value;
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('btn-copy');
+      btn.classList.add('copied', 'flipping');
+      setTimeout(() => {
+        btn.querySelector('.copy-icon').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+        btn.querySelector('.copy-label').textContent = 'Copied!';
+        btn.classList.remove('flipping');
+        // Scale bounce
+        btn.style.transform = 'scale(1.1)';
+        setTimeout(() => { btn.style.transform = ''; }, 160);
+      }, 200);
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.querySelector('.copy-icon').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+        btn.querySelector('.copy-label').textContent = 'Copy';
+      }, 1700);
+    });
+  });
+
+  /* ════════════════════════════════════════════════════════════════
+     DOWNLOAD — icon bounce
+  ════════════════════════════════════════════════════════════════ */
+  document.getElementById('btn-download').addEventListener('click', () => {
+    const btn = document.getElementById('btn-download');
+    btn.classList.add('downloading');
+    setTimeout(() => btn.classList.remove('downloading'), 500);
+
+    const img = document.querySelector('#qrcode img');
+    const canvas = document.querySelector('#qrcode canvas');
+    const a = document.createElement('a');
+    a.download = 'pictoqr.png';
+    if (canvas) a.href = canvas.toDataURL('image/png');
+    else if (img) a.href = img.src;
+    else return;
+    a.click();
+  });
+
+  /* ════════════════════════════════════════════════════════════════
+     OPEN FILE
+  ════════════════════════════════════════════════════════════════ */
+  document.getElementById('btn-open-file').addEventListener('click', () => {
+    if (shortUrl) window.open(shortUrl, '_blank', 'noopener');
+  });
+
+  /* ════════════════════════════════════════════════════════════════
+     UPLOAD ANOTHER
+  ════════════════════════════════════════════════════════════════ */
+  document.getElementById('btn-upload-another').addEventListener('click', () => {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    if (shakeTimer)     { clearInterval(shakeTimer);     shakeTimer = null; }
+    prevCountdownStr = '';
+
+    resultCard.classList.remove('show', 'expired-state');
+    uploadCard.style.display = '';
+    clearFile();
+    document.getElementById('qrcode').innerHTML = '';
+    qrSkelWrap.classList.remove('show');
+    document.getElementById('expiry-warning').style.display = 'none';
+    document.getElementById('expired-overlay').classList.remove('show');
+    document.getElementById('result-badge').classList.remove('badge-in');
+
+    // Reset stat cards
+    document.querySelectorAll('.stat-card').forEach(c => {
+      c.classList.remove('visible','expiry-warn','expiry-crit','shake');
+      c.style.animationDelay = '';
+    });
+    // Reset link + buttons
+    document.getElementById('link-box').classList.remove('reveal');
+    document.getElementById('link-box').style.opacity = '0';
+    document.getElementById('link-box').style.transform = 'translateY(12px)';
+    document.querySelectorAll('.btn-action').forEach(b => {
+      b.classList.remove('reveal'); b.style.opacity = '0'; b.style.transform = 'scale(0.9)';
     });
 
-    // ── Download QR ───────────────────────────────────────────────────────
-    document.getElementById('btn-download').addEventListener('click', () => {
-      const img = document.querySelector('#qrcode img');
-      const canvas = document.querySelector('#qrcode canvas');
-      const a = document.createElement('a');
-      a.download = 'pictoqr.png';
-      if (canvas)    a.href = canvas.toDataURL('image/png');
-      else if (img)  a.href = img.src;
-      else return;
-      a.click();
-    });
-
-    // ── Open file ─────────────────────────────────────────────────────────
-    document.getElementById('btn-open-file').addEventListener('click', () => {
-      if (shortUrl) window.open(shortUrl, '_blank', 'noopener');
-    });
-
-    // ── Upload another ────────────────────────────────────────────────────
-    document.getElementById('btn-upload-another').addEventListener('click', () => {
-      if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
-      resultCard.classList.remove('show', 'expired-state');
-      uploadCard.style.display = '';
-      clearFile();
-      document.getElementById('qrcode').innerHTML = '';
-      qrSkeleton.classList.remove('show');
-      document.getElementById('expiry-warning').style.display = 'none';
-      document.getElementById('expired-overlay').classList.remove('show');
-      document.querySelectorAll('.stat-card').forEach(c => {
-        c.classList.remove('visible','expiry-warn','expiry-crit');
-        c.style.transitionDelay = '';
-      });
-      shortUrl = '';
-      expiresAtMs = null;
-      resetGenerateBtn();
-    });
+    shortUrl = ''; expiresAtMs = null;
+    resetGenerateBtn();
+  });
   </script>
 </body>
 </html>
